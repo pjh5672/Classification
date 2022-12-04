@@ -89,8 +89,8 @@ def parse_args(make_dirs=True):
     parser.add_argument("--batch_size", type=int, default=256, help="Batch size")
     parser.add_argument("--num_epochs", type=int, default=300, help="Number of training epochs")
     parser.add_argument("--warmup", type=int, default=10, help="Epochs for warming up training")
-    parser.add_argument("--base_lr", type=float, default=1e-3, help="Base learning rate")
-    parser.add_argument("--lr_decay", type=float, default=1e-3, help="Learning rate decay")
+    parser.add_argument("--base_lr", type=float, default=1e-2, help="Base learning rate")
+    parser.add_argument("--lr_decay", type=float, default=1e-4, help="Learning rate decay")
     parser.add_argument("--momentum", type=float, default=0.9, help="Momentum")
     parser.add_argument("--weight_decay", type=float, default=0.05, help="Weight decay")
     parser.add_argument("--workers", type=int, default=8, help="Number of workers used in dataloader")
@@ -200,14 +200,13 @@ def main_work(rank, world_size, args, logger):
                         'scaler_state_dict': scaler.state_dict()}
             torch.save(save_opt, args.weight_dir / "last.pt")
 
-            if epoch % 10 == 0:
-                val_loader = tqdm(val_loader, desc=f"[VAL:{epoch:03d}/{args.num_epochs:03d}]", ncols=115, leave=False)
-                sum_top1_acc, eval_text = validate(args=args, dataloader=val_loader, model=model, epoch=epoch)
+            val_loader = tqdm(val_loader, desc=f"[VAL:{epoch:03d}/{args.num_epochs:03d}]", ncols=115, leave=False)
+            sum_top1_acc, eval_text = validate(args=args, dataloader=val_loader, model=model, epoch=epoch)
 
-                if sum_top1_acc > best_score:
-                    logging.warning(eval_text)
-                    best_epoch, best_score, best_perf_str = epoch, sum_top1_acc, eval_text
-                    torch.save(save_opt, args.weight_dir / "best.pt")
+            if sum_top1_acc > best_score:
+                logging.warning(eval_text)
+                best_epoch, best_score, best_perf_str = epoch, sum_top1_acc, eval_text
+                torch.save(save_opt, args.weight_dir / "best.pt")
 
         scheduler.step()
         
