@@ -94,7 +94,7 @@ def main():
     model = model.cuda(args.rank)
 
     val_loader = tqdm(val_loader, desc=f"[VAL:{0:03d}/{args.num_epochs:03d}]", ncols=115, leave=False)
-    sum_top1_acc, eval_text = validate(args=args, dataloader=val_loader, model=model)
+    _, eval_text = validate(args=args, dataloader=val_loader, model=model)
     logger.info(f"[Validation Result]\n{eval_text}")
     
 
