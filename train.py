@@ -127,7 +127,6 @@ def main_work(rank, world_size, args, logger):
     global epoch
 
     args.rank = rank
-    args.last_opt_step = -1
     args.batch_size = args.batch_size // world_size
     args.workers = min([os.cpu_count() // max(world_size, 1), args.batch_size if args.batch_size > 1 else 0, args.workers])
 
