@@ -38,7 +38,7 @@ from val import validate
 def setup(rank, world_size):
     if OS_SYSTEM == 'Linux':
         os.environ['MASTER_ADDR'] = 'localhost'
-        os.environ['MASTER_PORT'] = '12346'
+        os.environ['MASTER_PORT'] = '12350'
         dist.init_process_group('nccl', rank=rank, world_size=world_size)
 
 
