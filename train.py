@@ -7,7 +7,6 @@ import argparse
 from pathlib import Path
 from copy import deepcopy
 from datetime import datetime
-from collections import defaultdict
 
 import torch
 from torch.cuda import amp
