@@ -1,5 +1,13 @@
+import torch
 from torch import nn
+import torch.nn.functional as F
 
+class Mish(nn.Module):
+    def __init__(self):
+        super().__init__()
+
+    def forward(self, x):
+        return x * torch.tanh(F.softplus(x))
 
 
 def weight_init_kaiming_uniform(module):
@@ -10,40 +18,55 @@ def weight_init_kaiming_uniform(module):
         module.bias.data.fill_(0.0)
 
 
-
-class DepthwiseSeparableConv(nn.Module):
-    def __init__(self, c1, c2, kernel_size=3):
+class CSPStage(nn.Module):
+    def __init__(self, c1, num_blocks=1, depthwise=False):
         super().__init__()
-        self.conv = nn.Sequential(
-            Conv(c1, c1, kernel_size=kernel_size, padding=1, groups=c1),
-            Conv(c1, c2, kernel_size=1),
-        )
+        c_ = c1 // 2  # hidden channels
+        self.conv1 = Conv(c1, c_, kernel_size=1)
+        self.conv2 = Conv(c1, c_, kernel_size=1)
+        self.res_blocks = nn.Sequential(*[ResBlock(in_channels=c_, depthwise=depthwise) for _ in range(num_blocks)])
+        self.conv3 = Conv(c_*2, c1, kernel_size=1)
 
     def forward(self, x):
-        return self.conv(x)
+        y1 = self.conv1(x)
+        y2 = self.res_blocks(self.conv2(x))
+        return self.conv3(torch.cat([y1, y2], dim=1))
 
 
 
 class Conv(nn.Module):
-    def __init__(self, c1, c2, kernel_size, stride=1, padding=0, dilation=1, groups=1, act=True):
+    def __init__(self, c1, c2, kernel_size, stride=1, padding=0, dilation=1, act=True, depthwise=False):
         super().__init__()
-        self.conv = nn.Sequential(
-            nn.Conv2d(c1, c2, kernel_size=kernel_size, stride=stride, padding=padding, dilation=dilation, groups=groups),
-            nn.BatchNorm2d(c2),
-            nn.LeakyReLU(0.1) if act else nn.Identity()
-        )
+        if depthwise:
+            self.conv = nn.Sequential(
+                ### Depth-wise ###
+                nn.Conv2d(c1, c1, kernel_size=kernel_size, stride=stride, padding=padding, dilation=dilation, groups=c1, bias=False),
+                nn.BatchNorm2d(c1),
+                Mish() if act else nn.Identity(),
+                ### Point-wise ###
+                nn.Conv2d(c1, c2, kernel_size=1, stride=stride, padding=0, dilation=dilation, groups=1, bias=False),
+                nn.BatchNorm2d(c2),
+                Mish() if act else nn.Identity(),
+            )
+        else:
+            self.conv = nn.Sequential(
+                ### General Conv ###
+                nn.Conv2d(c1, c2, kernel_size=kernel_size, stride=stride, padding=padding, dilation=dilation, groups=1, bias=False),
+                nn.BatchNorm2d(c2),
+                Mish() if act else nn.Identity(),
+            )
 
     def forward(self, x):
         return self.conv(x)
-
+         
 
 
 class ResBlock(nn.Module):
-    def __init__(self, in_channels):
+    def __init__(self, in_channels, depthwise=False):
         super().__init__()
         assert in_channels % 2 == 0
-        self.conv1 = Conv(in_channels, in_channels//2, kernel_size=1, stride=1, padding=0)
-        self.conv2 = Conv(in_channels//2, in_channels, kernel_size=3, stride=1, padding=1)
+        self.conv1 = Conv(in_channels, in_channels//2, kernel_size=1, padding=0, depthwise=depthwise)
+        self.conv2 = Conv(in_channels//2, in_channels, kernel_size=3, padding=1, depthwise=depthwise)
     
     def forward(self, x):
         residual = x
@@ -51,6 +74,7 @@ class ResBlock(nn.Module):
         out = self.conv2(out)
         out += residual
         return out
+
 
 
 class BasicBlock(nn.Module):
@@ -63,7 +87,6 @@ class BasicBlock(nn.Module):
         self.conv2 = nn.Conv2d(out_channels, out_channels, kernel_size=3, stride=1, padding=1, bias=False)
         self.bn2 = nn.BatchNorm2d(out_channels)
         self.downsample = downsample
-
 
     def forward(self, x):
         identity = x
@@ -95,7 +118,6 @@ class BottleNeck(nn.Module):
         self.relu = nn.ReLU(inplace=True)
         self.downsample = downsample
 
-    
     def forward(self, x):
         identity = x
         out = self.conv1(x)
@@ -112,4 +134,4 @@ class BottleNeck(nn.Module):
 
         out += identity
         out = self.relu(out)
-        return 
+        return out

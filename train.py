@@ -31,7 +31,7 @@ random.seed(SEED)
 torch.manual_seed(SEED)
 
 from dataloader import Dataset, build_transformer
-from model import build_resnet
+from model import build_model
 from utils import set_lr, build_basic_logger, setup_worker_logging, setup_primary_logging, one_cycle
 from val import validate
 
@@ -97,6 +97,9 @@ def parse_args(make_dirs=True):
     parser.add_argument("--world_size", type=int, default=1, help="Number of available GPU devices")
     parser.add_argument("--rank", type=int, default=0, help="Process id for computation")
     parser.add_argument("--no_amp", action="store_true", help="Use of FP32 training (default: AMP training)")
+    parser.add_argument("--width_multiple", type=float, default=1.0, help="CSP-Layer channel multiple")
+    parser.add_argument("--depth_multiple", type=float, default=1.0, help="CSP-Model depth multiple")
+    parser.add_argument("--depthwise", action="store_true", help="Use of Depth-separable conv operation")
 
     args = parser.parse_args()
     args.data = ROOT / "data" / args.data
@@ -141,7 +144,8 @@ def main_work(rank, world_size, args, logger):
     args.class_list = train_dataset.class_list
     args.nw = max(round(args.warmup * len(train_loader)), 100)
 
-    model = build_resnet(arch_name=args.model, num_classes=len(args.class_list))
+    model = build_model(arch_name=args.model, num_classes=len(args.class_list), 
+                        width_multiple=args.width_multiple, depth_multiple=args.depth_multiple, depthwise=args.depthwise)
     macs, params = profile(deepcopy(model), inputs=(torch.randn(1, 3, args.img_size, args.img_size),), verbose=False)
     criterion = nn.CrossEntropyLoss(reduction="mean")
     optimizer = optim.SGD(model.parameters(), lr=args.base_lr, momentum=args.momentum, weight_decay=args.weight_decay)
@@ -193,6 +197,9 @@ def main_work(rank, world_size, args, logger):
             logging.warning(train_loss_str) 
             save_opt = {"running_epoch": epoch,
                         "model": args.model,
+                        "width_multiple": args.width_multiple,
+                        "depth_multiple": args.depth_multiple,
+                        "depthwise": args.depthwise,
                         "class_list": args.class_list,
                         "model_state": deepcopy(model.module).state_dict() if hasattr(model, "module") else deepcopy(model).state_dict(),
                         "optimizer_state": optimizer.state_dict(),

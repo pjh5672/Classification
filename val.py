@@ -17,7 +17,7 @@ SEED = 2023
 torch.manual_seed(SEED)
 
 from dataloader import Dataset, build_transformer
-from model import build_resnet
+from model import build_model
 from utils import build_basic_logger
 
 
@@ -67,7 +67,7 @@ def parse_args():
     parser.add_argument("--ckpt_name", type=str, default="best.pt", help="Path to trained model")
     parser.add_argument("--rank", type=int, default=0, help="Process id for computation")
     parser.add_argument("--workers", type=int, default=8, help="Number of workers used in dataloader")
-    
+
     args = parser.parse_args()
     args.data = ROOT / "data" / args.data
     args.exp_path = ROOT / "experiment" / args.exp
@@ -86,10 +86,9 @@ def main():
     val_loader = DataLoader(dataset=val_dataset, batch_size=args.batch_size, shuffle=False, pin_memory=True, num_workers=args.workers)
 
     ckpt = torch.load(args.ckpt_path, map_location = {"cpu":"cuda:%d" %args.rank})
-    args.model = ckpt["model"]
-    args.class_list = ckpt["class_list"]
-
-    model = build_resnet(arch_name=args.model, num_classes=len(args.class_list))
+    
+    model = build_model(arch_name=ckpt["model"], num_classes=len(ckpt["class_list"]), 
+                        width_multiple=ckpt["width_multiple"], depth_multiple=ckpt["depth_multiple"], depthwise=ckpt["depthwise"])
     model.load_state_dict(ckpt["model_state"], strict=True)
     model = model.cuda(args.rank)
 

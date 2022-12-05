@@ -16,11 +16,10 @@ class ResNet(nn.Module):
         self.layer2 = self._make_layer(block, 128, layers[1], stride=2)
         self.layer3 = self._make_layer(block, 256, layers[2], stride=2)
         self.layer4 = self._make_layer(block, 512, layers[3], stride=2)
-        
         self.avgpool = nn.AdaptiveAvgPool2d((1, 1))
         self.fc = nn.Linear(512 * block.expansion, num_classes)
-
         self.apply(weight_init_kaiming_uniform)
+        
         if zero_init_residual:
             # Zero-initialize the last BN in each residual branch,
             # so that the residual branch starts with zeros, and each residual block behaves like an identity.
@@ -48,16 +47,15 @@ class ResNet(nn.Module):
 
 
     def forward(self, x):
-        C1 = self.conv1(x)
-        C1 = self.bn1(C1)
-        C1 = self.relu(C1)
-        C1 = self.maxpool(C1)
-        C2 = self.layer1(C1)
-        C3 = self.layer2(C2)
-        C4 = self.layer3(C3)
-        C5 = self.layer4(C4)
-
-        out = self.avgpool(C5)
+        out = self.conv1(x)
+        out = self.bn1(out)
+        out = self.relu(out)
+        out = self.maxpool(out)
+        out = self.layer1(out)
+        out = self.layer2(out)
+        out = self.layer3(out)
+        out = self.layer4(out)
+        out = self.avgpool(out)
         out = torch.flatten(out, 1)
         out = self.fc(out)
         return out
