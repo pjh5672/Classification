@@ -15,6 +15,7 @@
 
 This is a repository for PyTorch training implementation of general classifier.    
 
+![result](./asset/data.jpg)
 
 
 ## [Usage]

@@ -48,7 +48,7 @@ def build_transformer(input_size, mean=MEAN, std=STD):
     transformer = {
         "train": transforms.Compose([
             transforms.ToTensor(),
-            transforms.Resize((int(input_size * 1.1), int(input_size * 1.1))),
+            transforms.Resize((int(input_size * 1.2), int(input_size * 1.2))),
             transforms.RandomCrop(input_size),
             transforms.RandomHorizontalFlip(),
             transforms.Normalize(mean=mean, std=std)
@@ -81,7 +81,7 @@ if __name__ == "__main__":
     train_dataset.load_transformer(transformer=transformer["train"])
     val_dataset = Dataset(yaml_path=yaml_path, phase="val")
     val_dataset.load_transformer(transformer=transformer["val"])
-    val_dataloader = DataLoader(train_dataset, batch_size=8, num_workers=0, shuffle=False)
+    val_dataloader = DataLoader(train_dataset, batch_size=8, num_workers=0, shuffle=True)
 
     print(len(train_dataset), len(val_dataset))
     for index, minibatch in enumerate(val_dataloader):
