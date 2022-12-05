@@ -207,9 +207,9 @@ def main_work(rank, world_size, args, logger):
 
             val_loader = tqdm(val_loader, desc=f"[VAL:{epoch:03d}/{args.num_epochs:03d}]", ncols=115, leave=False)
             sum_top1_acc, eval_text = validate(args=args, dataloader=val_loader, model=model, epoch=epoch)
-            logging.warning(eval_text)
             
             if sum_top1_acc > best_score:
+                logging.warning(eval_text)
                 best_epoch, best_score, best_perf_str = epoch, sum_top1_acc, eval_text
                 torch.save(save_opt, args.weight_dir / "best.pt")
 
