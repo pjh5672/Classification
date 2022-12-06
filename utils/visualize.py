@@ -2,8 +2,8 @@ import cv2
 import numpy as np
 
 
-MEAN = 0.406, 0.456, 0.485 # BGR
-STD = 0.225, 0.224, 0.229 # BGR
+MEAN = 0.485, 0.456, 0.406 # RGB
+STD = 0.229, 0.224, 0.225 # RGB
 TEXT_COLOR = (10, 250, 10)
 
 
@@ -20,7 +20,7 @@ def visualize_dataset(img_loader, class_list, show_nums=5):
 
         if len(check_images) >= show_nums:
             concat_result = np.concatenate(check_images, axis=1)
-            return concat_result
+            return concat_result[..., ::-1]
 
 
 def to_image(tensor, mean=MEAN, std=STD):

@@ -1,70 +1,49 @@
 import os
 import yaml
-from pathlib import Path
 
-import cv2
-import torch
+from torchvision.datasets import ImageFolder
 from torchvision import transforms
 
 
-MEAN = 0.406, 0.456, 0.485 # BGR
-STD = 0.225, 0.224, 0.229 # BGR
+MEAN = 0.485, 0.456, 0.406 # RGB
+STD = 0.229, 0.224, 0.225 # RGB
 
 
+def build_dataset(yaml_path, input_size, mean=MEAN, std=STD):
+    with open(yaml_path, mode="r") as f:
+        data_item = yaml.load(f, Loader=yaml.FullLoader)
 
-class Dataset:
-    def __init__(self, yaml_path, phase):
-        with open(yaml_path, mode="r") as f:
-            data_item = yaml.load(f, Loader=yaml.FullLoader)
-        self.phase = phase
-        self.class_list = data_item["CLASS_INFO"]
+    class_list = data_item["CLASS_INFO"]
+    train_root = os.path.join(data_item["PATH"], data_item["TRAIN"])
+    val_root = os.path.join(data_item["PATH"], data_item["VAL"])
 
-        self.image_paths = []
-        self.sub_dirs = []
-        root_dir = Path(data_item["PATH"]) / data_item[self.phase.upper()]
-        for sub_dir in os.listdir(root_dir):
-            self.sub_dirs.append(sub_dir)
-            image_dir = root_dir / sub_dir
-            self.image_paths += [image_dir / fn for fn in os.listdir(root_dir / sub_dir) if fn.lower().endswith(("png", "jpg", "jpeg"))]
-
-
-    def __len__(self): return len(self.image_paths)
-
-
-    def __getitem__(self, index):
-        image = cv2.imread(str(self.image_paths[index]))
-        image = self.transformer(image)
-        label = self.sub_dirs.index(self.image_paths[index].parent.name)
-        label = torch.Tensor([label]).long()
-        return image, label
-
-
-    def load_transformer(self, transformer):
-        self.transformer = transformer
-
-
-
-def build_transformer(input_size, mean=MEAN, std=STD):
-    transformer = {
-        "train": transforms.Compose([
-            transforms.ToTensor(),
-            transforms.Resize((int(input_size * 1.2), int(input_size * 1.2))),
-            transforms.RandomCrop(input_size),
-            transforms.RandomHorizontalFlip(),
-            transforms.Normalize(mean=mean, std=std)
-        ]),
-        "val": transforms.Compose([
-            transforms.ToTensor(),
-            transforms.Resize((int(input_size * 1.1), int(input_size * 1.1))),
-            transforms.CenterCrop(input_size),
-            transforms.Normalize(mean=mean, std=std)
-        ])
+    dataset = {
+        "train": ImageFolder(
+            root=train_root, 
+            transform=transforms.Compose([
+                transforms.TrivialAugmentWide(),
+                transforms.RandomHorizontalFlip(),
+                transforms.Resize((input_size, input_size)),
+                transforms.ToTensor(),
+                transforms.Normalize(mean=mean, std=std)
+            ])
+        ),
+        "val":  ImageFolder(
+            root=val_root, 
+            transform=transforms.Compose([
+                transforms.Resize((input_size, input_size)),
+                transforms.ToTensor(),
+                transforms.Normalize(mean=mean, std=std)
+            ])
+        ),
     }
-    return transformer
+    return dataset, class_list
 
 
 if __name__ == "__main__":
     import sys
+    import cv2
+    from pathlib import Path
     from torch.utils.data import DataLoader
 
     ROOT = Path(__file__).resolve().parents[1]
@@ -73,22 +52,19 @@ if __name__ == "__main__":
 
     from utils import visualize_dataset
 
-    yaml_path = ROOT / 'data' / 'imagenet.yaml'
+    yaml_path = ROOT / 'data' / 'toy.yaml'
     input_size = 224
     
-    transformer = build_transformer(input_size=input_size)
-    train_dataset = Dataset(yaml_path=yaml_path, phase="train")
-    train_dataset.load_transformer(transformer=transformer["train"])
-    val_dataset = Dataset(yaml_path=yaml_path, phase="val")
-    val_dataset.load_transformer(transformer=transformer["val"])
-    val_dataloader = DataLoader(train_dataset, batch_size=8, num_workers=0, shuffle=True)
+    dataset, class_list = build_dataset(yaml_path=yaml_path, input_size=input_size)
+    train_dataloader = DataLoader(dataset["train"], batch_size=8, num_workers=0, shuffle=True)
+    val_dataloader = DataLoader(dataset["val"], batch_size=8, num_workers=0, shuffle=False)
 
-    print(len(train_dataset), len(val_dataset))
-    for index, minibatch in enumerate(val_dataloader):
-        images, labels = minibatch[0], minibatch[1].squeeze(dim=1)
+    print(len(dataset["train"]), len(dataset["val"]))
+    for index, minibatch in enumerate(train_dataloader):
+        images, labels = minibatch[0], minibatch[1]
         print(images.shape, labels)
         if index == 0:
             break
 
-    vis_image = visualize_dataset(img_loader=val_dataloader, class_list=val_dataset.class_list, show_nums=6)
+    vis_image = visualize_dataset(img_loader=train_dataloader, class_list=class_list, show_nums=6)
     cv2.imwrite(f'./asset/data.jpg', vis_image)

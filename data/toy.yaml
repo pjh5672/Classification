@@ -1,0 +1,9 @@
+PATH: data/toy_dataset
+
+TRAIN: train
+VAL: val
+
+CLASS_INFO: {
+  0: "cat",
+  1: "dog",
+}

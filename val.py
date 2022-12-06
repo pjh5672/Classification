@@ -16,7 +16,7 @@ OS_SYSTEM = platform.system()
 SEED = 2023
 torch.manual_seed(SEED)
 
-from dataloader import Dataset, build_transformer
+from dataloader import build_dataset
 from model import build_model
 from utils import build_basic_logger
 
@@ -41,17 +41,16 @@ def accuracy(output, target, topk=(1,)):
 @torch.no_grad()
 def validate(args, dataloader, model, epoch=0):
     model.eval()
-    sum_top1_acc, sum_top5_acc = 0.0, 0.0
+    sum_top1_acc = 0.0
 
     for _, minibatch in enumerate(dataloader):
-        images, labels = minibatch[0], minibatch[1].squeeze(dim=1)
+        images, labels = minibatch[0], minibatch[1]
         predictions = model(images.cuda(args.rank, non_blocking=True))
-        acc = accuracy(predictions, labels.cuda(args.rank, non_blocking=True), topk=(1, 5))
+        acc = accuracy(predictions, labels.cuda(args.rank, non_blocking=True), topk=(1, ))
         sum_top1_acc += acc[0].item()
-        sum_top5_acc += acc[1].item()
+        
     sum_top1_acc /= len(dataloader)
-    sum_top5_acc /= len(dataloader)
-    acc_str = f"[Val-Epoch:{epoch:03d}] Top-1 Acc: {sum_top1_acc:.4f}, Top-5 Acc: {sum_top5_acc:.4f}"
+    acc_str = f"[Val-Epoch:{epoch:03d}] Top-1 Acc: {sum_top1_acc:.2f}"
     return sum_top1_acc, acc_str
 
 
@@ -59,7 +58,7 @@ def validate(args, dataloader, model, epoch=0):
 def parse_args():
     parser = argparse.ArgumentParser()
     parser.add_argument("--exp", type=str, required=True, help="Name to log training")
-    parser.add_argument("--data", type=str, default="imagenet.yaml", help="Path to data.yaml")
+    parser.add_argument("--data", type=str, default="toy.yaml", help="Path to data.yaml")
     parser.add_argument("--model", type=str, default="resnet18", help="Model architecture")
     parser.add_argument("--img_size", type=int, default=224, help="Model input size")
     parser.add_argument("--batch_size", type=int, default=16, help="Batch size")
@@ -80,10 +79,8 @@ def main():
     logger = build_basic_logger(args.exp_path / "val.log", set_level=1)
     logger.info(f"[Arguments]\n{pprint.pformat(vars(args))}\n")
 
-    transformer = build_transformer(input_size=args.img_size)
-    val_dataset = Dataset(yaml_path=args.data, phase="val")
-    val_dataset.load_transformer(transformer=transformer["val"])
-    val_loader = DataLoader(dataset=val_dataset, batch_size=args.batch_size, shuffle=False, pin_memory=True, num_workers=args.workers)
+    dataset, _ = build_dataset(yaml_path=args.data, input_size=args.img_size)
+    val_loader = DataLoader(dataset=dataset["val"], batch_size=args.batch_size, shuffle=False, pin_memory=True, num_workers=args.workers)
 
     ckpt = torch.load(args.ckpt_path, map_location = {"cpu":"cuda:%d" %args.rank})
     

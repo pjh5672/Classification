@@ -29,7 +29,7 @@ SEED = 2023
 random.seed(SEED)
 torch.manual_seed(SEED)
 
-from dataloader import Dataset, build_transformer
+from dataloader import build_dataset
 from model import build_model
 from utils import set_lr, build_basic_logger, setup_worker_logging, setup_primary_logging, one_cycle
 from val import validate
@@ -42,8 +42,8 @@ def setup(rank, world_size):
         dist.init_process_group('nccl', rank=rank, world_size=world_size)
 
 
-def cleanup():
-    if OS_SYSTEM == 'Linux':
+def cleanup(world_size):
+    if OS_SYSTEM == 'Linux' and world_size > 1:
         dist.destroy_process_group()
 
 
@@ -57,7 +57,7 @@ def train(args, dataloader, model, criterion, optimizer, scaler):
         if ni <= args.nw:
             set_lr(optimizer, args.base_lr * pow(ni / (args.nw), 4))
 
-        images, labels = minibatch[0], minibatch[1].squeeze(dim=1)
+        images, labels = minibatch[0], minibatch[1]
 
         with amp.autocast(enabled=not args.no_amp):
             predictions = model(images.cuda(args.rank, non_blocking=True))
@@ -74,7 +74,7 @@ def train(args, dataloader, model, criterion, optimizer, scaler):
         else:
             sum_loss += loss.item()
 
-    loss_str = f"[Train-Epoch:{epoch:03d}] Loss: {sum_loss/len(dataloader):.4f}"
+    loss_str = f"[Train-Epoch:{epoch:03d}] Loss: {sum_loss/len(dataloader):.4f}\t"
     return loss_str
 
 
@@ -82,16 +82,15 @@ def parse_args(make_dirs=True):
     parser = argparse.ArgumentParser()
     parser.add_argument("--exp", type=str, required=True, help="Name to log training")
     parser.add_argument("--resume", type=str, nargs='?', const=True ,help="Name to resume path")
-    parser.add_argument("--data", type=str, default="imagenet.yaml", help="Path to data.yaml")
+    parser.add_argument("--data", type=str, default="toy.yaml", help="Path to data.yaml")
     parser.add_argument("--model", type=str, default="resnet18", help="Model architecture")
     parser.add_argument("--img_size", type=int, default=224, help="Model input size")
     parser.add_argument("--batch_size", type=int, default=256, help="Batch size")
     parser.add_argument("--num_epochs", type=int, default=300, help="Number of training epochs")
     parser.add_argument("--warmup", type=int, default=10, help="Epochs for warming up training")
-    parser.add_argument("--base_lr", type=float, default=1e-2, help="Base learning rate")
-    parser.add_argument("--lr_decay", type=float, default=1e-4, help="Learning rate decay")
-    parser.add_argument("--momentum", type=float, default=0.9, help="Momentum")
-    parser.add_argument("--weight_decay", type=float, default=0.05, help="Weight decay")
+    parser.add_argument("--base_lr", type=float, default=1e-3, help="Base learning rate")
+    parser.add_argument("--lr_decay", type=float, default=1e-2, help="Learning rate decay")
+    parser.add_argument("--weight_decay", type=float, default=0.01, help="Weight decay")
     parser.add_argument("--workers", type=int, default=8, help="Number of workers used in dataloader")
     parser.add_argument("--world_size", type=int, default=1, help="Number of available GPU devices")
     parser.add_argument("--rank", type=int, default=0, help="Process id for computation")
@@ -130,23 +129,19 @@ def main_work(rank, world_size, args, logger):
     args.batch_size = args.batch_size // world_size
     args.workers = min([os.cpu_count() // max(world_size, 1), args.batch_size if args.batch_size > 1 else 0, args.workers])
 
-    transformer = build_transformer(input_size=args.img_size)
-    train_dataset = Dataset(yaml_path=args.data, phase="train")
-    train_dataset.load_transformer(transformer=transformer["train"])
-    train_sampler = distributed.DistributedSampler(train_dataset, num_replicas=world_size, rank=args.rank, shuffle=True)
-    train_loader = DataLoader(dataset=train_dataset, batch_size=args.batch_size, shuffle=False, pin_memory=True, num_workers=args.workers, sampler=train_sampler)
-    val_dataset = Dataset(yaml_path=args.data, phase="val")
-    val_dataset.load_transformer(transformer=transformer["val"])
-    val_loader = DataLoader(dataset=val_dataset, batch_size=args.batch_size, shuffle=False, pin_memory=True, num_workers=args.workers)
+    dataset, class_list = build_dataset(yaml_path=args.data, input_size=args.img_size)
+    train_sampler = distributed.DistributedSampler(dataset=dataset["train"], num_replicas=world_size, rank=args.rank, shuffle=True)
+    train_loader = DataLoader(dataset=dataset["train"], batch_size=args.batch_size, shuffle=False, pin_memory=True, num_workers=args.workers, sampler=train_sampler)
+    val_loader = DataLoader(dataset=dataset["val"], batch_size=args.batch_size, shuffle=False, pin_memory=True, num_workers=args.workers)
 
-    args.class_list = train_dataset.class_list
+    args.class_list = class_list
     args.nw = max(round(args.warmup * len(train_loader)), 100)
 
     model = build_model(arch_name=args.model, num_classes=len(args.class_list), 
                         width_multiple=args.width_multiple, depth_multiple=args.depth_multiple, depthwise=args.depthwise)
     macs, params = profile(deepcopy(model), inputs=(torch.randn(1, 3, args.img_size, args.img_size),), verbose=False)
     criterion = nn.CrossEntropyLoss(reduction="mean")
-    optimizer = optim.SGD(model.parameters(), lr=args.base_lr, momentum=args.momentum, weight_decay=args.weight_decay)
+    optimizer = optim.AdamW(model.parameters(), lr=args.base_lr, weight_decay=args.weight_decay)
     scheduler = optim.lr_scheduler.LambdaLR(optimizer, lr_lambda=one_cycle(1, args.lr_decay, args.num_epochs))
     scaler = amp.GradScaler(enabled=not args.no_amp)
 
@@ -192,7 +187,6 @@ def main_work(rank, world_size, args, logger):
         train_loss_str = train(args=args, dataloader=train_loader, model=model, criterion=criterion, optimizer=optimizer, scaler=scaler)
 
         if args.rank == 0:
-            logging.warning(train_loss_str) 
             save_opt = {"running_epoch": epoch,
                         "model": args.model,
                         "width_multiple": args.width_multiple,
@@ -206,11 +200,11 @@ def main_work(rank, world_size, args, logger):
             torch.save(save_opt, args.weight_dir / "last.pt")
 
             val_loader = tqdm(val_loader, desc=f"[VAL:{epoch:03d}/{args.num_epochs:03d}]", ncols=115, leave=False)
-            sum_top1_acc, eval_text = validate(args=args, dataloader=val_loader, model=model, epoch=epoch)
-            
-            if sum_top1_acc > best_score:
-                logging.warning(eval_text)
-                best_epoch, best_score, best_perf_str = epoch, sum_top1_acc, eval_text
+            top1_acc, eval_text = validate(args=args, dataloader=val_loader, model=model, epoch=epoch)
+            logging.warning(train_loss_str + eval_text)
+
+            if top1_acc > best_score:
+                best_epoch, best_score, best_perf_str = epoch, top1_acc, eval_text
                 torch.save(save_opt, args.weight_dir / "best.pt")
 
         scheduler.step()
@@ -227,8 +221,9 @@ if __name__ == "__main__":
         torch.multiprocessing.set_start_method('spawn', force=True)
         logger = setup_primary_logging(args.exp_path / 'train.log')
         mp.spawn(main_work, args=(args.world_size, args, logger), nprocs=args.world_size, join=True)
+        cleanup(world_size=args.world_size)
     else:
         logger = build_basic_logger(args.exp_path / "train.log")
         main_work(rank=0, world_size=1, args=args, logger=logger)
 
-    cleanup()
+    
