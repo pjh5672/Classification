@@ -32,7 +32,7 @@ torch.manual_seed(SEED)
 
 from dataloader import build_dataset
 from model import build_model
-from utils import set_lr, build_basic_logger, setup_worker_logging, setup_primary_logging, one_cycle
+from utils import set_lr, build_basic_logger, setup_worker_logging, setup_primary_logging
 from val import validate
 
 
