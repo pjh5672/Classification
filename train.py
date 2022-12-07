@@ -87,9 +87,9 @@ def parse_args(make_dirs=True):
     parser.add_argument("--model", type=str, default="resnet18", help="Model architecture")
     parser.add_argument("--img_size", type=int, default=224, help="Model input size")
     parser.add_argument("--batch_size", type=int, default=256, help="Batch size")
-    parser.add_argument("--num_epochs", type=int, default=120, help="Number of training epochs")
+    parser.add_argument("--num_epochs", type=int, default=150, help="Number of training epochs")
     parser.add_argument("--warmup", type=int, default=5, help="Epochs for warming up training")
-    parser.add_argument("--base_lr", type=float, default=1e-1, help="Base learning rate")
+    parser.add_argument("--base_lr", type=float, default=1e-2, help="Base learning rate")
     parser.add_argument("--momentum", type=float, default=0.9, help="Momentum")
     parser.add_argument("--weight_decay", type=float, default=0.05, help="Weight decay")
     parser.add_argument("--label_smoothing", type=float, default=0.1, help="Label smoothing")
@@ -129,7 +129,7 @@ def main_work(rank, world_size, args, logger):
 
     args.rank = rank
     args.batch_size //= world_size
-    args.base_lr *= (args.batch_size // 256)
+    args.base_lr *= (args.batch_size/256)
     args.workers = min([os.cpu_count() // max(world_size, 1), args.batch_size if args.batch_size > 1 else 0, args.workers])
 
     dataset, class_list = build_dataset(yaml_path=args.data, input_size=args.img_size)
