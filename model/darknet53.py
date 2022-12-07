@@ -1,6 +1,6 @@
 import torch
 from torch import nn
-from element import Conv, ResBlock, weight_init_kaiming_uniform
+from element import Conv, ResBlock, weight_init_xavier_uniform
 
 
 
@@ -15,7 +15,7 @@ class Darknet53(nn.Module):
         self.res_block5 = self.build_conv_and_resblock(in_channels=512, out_channels=1024, num_blocks=4, depthwise=depthwise)
         self.avgpool = nn.AdaptiveAvgPool2d((1, 1))
         self.fc = nn.Linear(1024, num_classes)
-        self.apply(weight_init_kaiming_uniform)
+        self.apply(weight_init_xavier_uniform)
 
 
     def forward(self, x):

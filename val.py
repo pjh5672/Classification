@@ -59,7 +59,6 @@ def parse_args():
     parser = argparse.ArgumentParser()
     parser.add_argument("--exp", type=str, required=True, help="Name to log training")
     parser.add_argument("--data", type=str, default="toy.yaml", help="Path to data.yaml")
-    parser.add_argument("--model", type=str, default="resnet18", help="Model architecture")
     parser.add_argument("--img_size", type=int, default=224, help="Model input size")
     parser.add_argument("--batch_size", type=int, default=16, help="Batch size")
     parser.add_argument("--num_epochs", type=int, default=1, help="Number of training epochs")
@@ -84,8 +83,7 @@ def main():
 
     ckpt = torch.load(args.ckpt_path, map_location = {"cpu":"cuda:%d" %args.rank})
     
-    model = build_model(arch_name=ckpt["model"], num_classes=len(ckpt["class_list"]), 
-                        width_multiple=ckpt["width_multiple"], depth_multiple=ckpt["depth_multiple"], depthwise=ckpt["depthwise"])
+    model = build_model(arch_name=ckpt["model"], num_classes=len(ckpt["class_list"]), width_multiple=ckpt["width_multiple"], depth_multiple=ckpt["depth_multiple"], depthwise=ckpt["depthwise"])
     model.load_state_dict(ckpt["model_state"], strict=True)
     model = model.cuda(args.rank)
 

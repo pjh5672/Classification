@@ -21,9 +21,9 @@ def build_dataset(yaml_path, input_size, mean=MEAN, std=STD):
         "train": ImageFolder(
             root=train_root, 
             transform=transforms.Compose([
-                transforms.TrivialAugmentWide(),
-                transforms.RandomHorizontalFlip(),
-                transforms.Resize((input_size, input_size)),
+                transforms.RandomResizedCrop(size=input_size, scale=(0.08, 1.0), ratio=(3/4, 4/3)),
+                transforms.RandomHorizontalFlip(p=0.5),
+                transforms.ColorJitter(brightness=(0.6, 1.4), saturation=(0.6, 1.4), hue=(-0.4, 0.4)),
                 transforms.ToTensor(),
                 transforms.Normalize(mean=mean, std=std)
             ])
@@ -31,7 +31,8 @@ def build_dataset(yaml_path, input_size, mean=MEAN, std=STD):
         "val":  ImageFolder(
             root=val_root, 
             transform=transforms.Compose([
-                transforms.Resize((input_size, input_size)),
+                transforms.Resize(size=256),
+                transforms.CenterCrop(size=224),
                 transforms.ToTensor(),
                 transforms.Normalize(mean=mean, std=std)
             ])
@@ -52,7 +53,7 @@ if __name__ == "__main__":
 
     from utils import visualize_dataset
 
-    yaml_path = ROOT / 'data' / 'toy.yaml'
+    yaml_path = ROOT / 'data' / 'imagenet.yaml'
     input_size = 224
     
     dataset, class_list = build_dataset(yaml_path=yaml_path, input_size=input_size)

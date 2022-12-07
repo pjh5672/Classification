@@ -11,9 +11,9 @@ class Mish(nn.Module):
         return x * torch.tanh(F.softplus(x))
 
 
-def weight_init_kaiming_uniform(module):
+def weight_init_xavier_uniform(module):
     if isinstance(module, nn.Conv2d):
-        nn.init.kaiming_normal_(module.weight, mode='fan_out', nonlinearity='relu')
+        nn.init.xavier_uniform_(module.weight)
     elif isinstance(module, nn.BatchNorm2d):
         module.weight.data.fill_(1.0)
         module.bias.data.fill_(0.0)

@@ -1,5 +1,6 @@
 import os
 import sys
+import math
 import random
 import pprint
 import platform
@@ -55,7 +56,7 @@ def train(args, dataloader, model, criterion, optimizer, scaler):
     for i, minibatch in enumerate(dataloader):
         ni = i + len(dataloader) * (epoch - 1)
         if ni <= args.nw:
-            set_lr(optimizer, args.base_lr * pow(ni / (args.nw), 4))
+            set_lr(optimizer, args.base_lr * pow(ni / (args.nw), 2))
 
         images, labels = minibatch[0], minibatch[1]
 
@@ -86,11 +87,12 @@ def parse_args(make_dirs=True):
     parser.add_argument("--model", type=str, default="resnet18", help="Model architecture")
     parser.add_argument("--img_size", type=int, default=224, help="Model input size")
     parser.add_argument("--batch_size", type=int, default=256, help="Batch size")
-    parser.add_argument("--num_epochs", type=int, default=300, help="Number of training epochs")
-    parser.add_argument("--warmup", type=int, default=10, help="Epochs for warming up training")
-    parser.add_argument("--base_lr", type=float, default=1e-3, help="Base learning rate")
-    parser.add_argument("--lr_decay", type=float, default=1e-2, help="Learning rate decay")
-    parser.add_argument("--weight_decay", type=float, default=0.01, help="Weight decay")
+    parser.add_argument("--num_epochs", type=int, default=120, help="Number of training epochs")
+    parser.add_argument("--warmup", type=int, default=5, help="Epochs for warming up training")
+    parser.add_argument("--base_lr", type=float, default=1e-1, help="Base learning rate")
+    parser.add_argument("--momentum", type=float, default=0.9, help="Momentum")
+    parser.add_argument("--weight_decay", type=float, default=0.05, help="Weight decay")
+    parser.add_argument("--label_smoothing", type=float, default=0.1, help="Label smoothing")
     parser.add_argument("--workers", type=int, default=8, help="Number of workers used in dataloader")
     parser.add_argument("--world_size", type=int, default=1, help="Number of available GPU devices")
     parser.add_argument("--rank", type=int, default=0, help="Process id for computation")
@@ -126,23 +128,21 @@ def main_work(rank, world_size, args, logger):
     global epoch
 
     args.rank = rank
-    args.batch_size = args.batch_size // world_size
+    args.batch_size //= world_size
+    args.base_lr *= (args.batch_size // 256)
     args.workers = min([os.cpu_count() // max(world_size, 1), args.batch_size if args.batch_size > 1 else 0, args.workers])
 
     dataset, class_list = build_dataset(yaml_path=args.data, input_size=args.img_size)
     train_sampler = distributed.DistributedSampler(dataset=dataset["train"], num_replicas=world_size, rank=args.rank, shuffle=True)
     train_loader = DataLoader(dataset=dataset["train"], batch_size=args.batch_size, shuffle=False, pin_memory=True, num_workers=args.workers, sampler=train_sampler)
     val_loader = DataLoader(dataset=dataset["val"], batch_size=args.batch_size, shuffle=False, pin_memory=True, num_workers=args.workers)
-
-    args.class_list = class_list
     args.nw = max(round(args.warmup * len(train_loader)), 100)
 
-    model = build_model(arch_name=args.model, num_classes=len(args.class_list), 
-                        width_multiple=args.width_multiple, depth_multiple=args.depth_multiple, depthwise=args.depthwise)
+    model = build_model(arch_name=args.model, num_classes=len(class_list), width_multiple=args.width_multiple, depth_multiple=args.depth_multiple, depthwise=args.depthwise)
     macs, params = profile(deepcopy(model), inputs=(torch.randn(1, 3, args.img_size, args.img_size),), verbose=False)
-    criterion = nn.CrossEntropyLoss(reduction="mean")
-    optimizer = optim.AdamW(model.parameters(), lr=args.base_lr, weight_decay=args.weight_decay)
-    scheduler = optim.lr_scheduler.LambdaLR(optimizer, lr_lambda=one_cycle(1, args.lr_decay, args.num_epochs))
+    criterion = nn.CrossEntropyLoss(reduction="mean", label_smoothing=args.label_smoothing)
+    optimizer = optim.SGD(model.parameters(), lr=args.base_lr, momentum=args.momentum, weight_decay=args.weight_decay, nesterov=True)
+    scheduler = optim.lr_scheduler.LambdaLR(optimizer, lr_lambda=lambda x: 0.5 *(1 + math.cos(math.pi * x / args.num_epochs)))
     scaler = amp.GradScaler(enabled=not args.no_amp)
 
     model = model.cuda(args.rank)
@@ -188,11 +188,11 @@ def main_work(rank, world_size, args, logger):
 
         if args.rank == 0:
             save_opt = {"running_epoch": epoch,
+                        "class_list": class_list,
                         "model": args.model,
                         "width_multiple": args.width_multiple,
                         "depth_multiple": args.depth_multiple,
                         "depthwise": args.depthwise,
-                        "class_list": args.class_list,
                         "model_state": deepcopy(model.module).state_dict() if hasattr(model, "module") else deepcopy(model).state_dict(),
                         "optimizer_state": optimizer.state_dict(),
                         "scheduler_state": scheduler.state_dict(),
@@ -225,5 +225,3 @@ if __name__ == "__main__":
     else:
         logger = build_basic_logger(args.exp_path / "train.log")
         main_work(rank=0, world_size=1, args=args, logger=logger)
-
-    
