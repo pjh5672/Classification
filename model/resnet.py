@@ -1,6 +1,6 @@
 import torch
 from torch import nn
-from element import BasicBlock, BottleNeck, weight_init_xavier_uniform
+from element import BasicBlock, BottleNeck, weight_init_kaiming_uniform
 
 
 
@@ -18,7 +18,7 @@ class ResNet(nn.Module):
         self.layer4 = self._make_layer(block, 512, layers[3], stride=2)
         self.avgpool = nn.AdaptiveAvgPool2d((1, 1))
         self.fc = nn.Linear(512 * block.expansion, num_classes)
-        self.apply(weight_init_xavier_uniform)
+        self.apply(weight_init_kaiming_uniform)
         
         if zero_init_residual:
             # Zero-initialize the last BN in each residual branch,

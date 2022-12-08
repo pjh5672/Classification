@@ -1,6 +1,6 @@
 import torch
 from torch import nn
-from element import Conv, CSPStage, weight_init_xavier_uniform
+from element import Conv, CSPStage, weight_init_kaiming_uniform
 
 
 
@@ -32,7 +32,7 @@ class CSPDarknet53(nn.Module):
         )
         self.avgpool = nn.AdaptiveAvgPool2d((1, 1))
         self.fc = nn.Linear(width_cfg[4], num_classes)
-        self.apply(weight_init_xavier_uniform)
+        self.apply(weight_init_kaiming_uniform)
 
 
     def forward(self, x):

@@ -1,6 +1,5 @@
 import os
 import sys
-import math
 import random
 import pprint
 import platform
@@ -43,8 +42,8 @@ def setup(rank, world_size):
         dist.init_process_group('nccl', rank=rank, world_size=world_size)
 
 
-def cleanup(world_size):
-    if OS_SYSTEM == 'Linux' and world_size > 1:
+def cleanup():
+    if OS_SYSTEM == 'Linux':
         dist.destroy_process_group()
 
 
@@ -70,7 +69,7 @@ def train(args, dataloader, model, criterion, optimizer, scaler):
         optimizer.zero_grad()
 
         if not torch.isfinite(loss):
-            print(f'############## Loss is Nan/Inf ! {loss} ##############')
+            print(f'############## Loss is Nan/Inf ! ##############')
             sys.exit(0)
         else:
             sum_loss += loss.item()
@@ -88,8 +87,9 @@ def parse_args(make_dirs=True):
     parser.add_argument("--img_size", type=int, default=224, help="Model input size")
     parser.add_argument("--batch_size", type=int, default=256, help="Batch size")
     parser.add_argument("--num_epochs", type=int, default=150, help="Number of training epochs")
+    parser.add_argument('--lr_decay', nargs='+', default=[30, 60, 90], type=int, help='Epoch to learning rate decay')
     parser.add_argument("--warmup", type=int, default=5, help="Epochs for warming up training")
-    parser.add_argument("--base_lr", type=float, default=1e-2, help="Base learning rate")
+    parser.add_argument("--base_lr", type=float, default=1e-1, help="Base learning rate")
     parser.add_argument("--momentum", type=float, default=0.9, help="Momentum")
     parser.add_argument("--weight_decay", type=float, default=0.05, help="Weight decay")
     parser.add_argument("--label_smoothing", type=float, default=0.1, help="Label smoothing")
@@ -129,7 +129,7 @@ def main_work(rank, world_size, args, logger):
 
     args.rank = rank
     args.batch_size //= world_size
-    args.base_lr *= (args.batch_size/256)
+    args.base_lr *= (args.batch_size / 256)
     args.workers = min([os.cpu_count() // max(world_size, 1), args.batch_size if args.batch_size > 1 else 0, args.workers])
 
     dataset, class_list = build_dataset(yaml_path=args.data, input_size=args.img_size)
@@ -141,8 +141,8 @@ def main_work(rank, world_size, args, logger):
     model = build_model(arch_name=args.model, num_classes=len(class_list), width_multiple=args.width_multiple, depth_multiple=args.depth_multiple, depthwise=args.depthwise)
     macs, params = profile(deepcopy(model), inputs=(torch.randn(1, 3, args.img_size, args.img_size),), verbose=False)
     criterion = nn.CrossEntropyLoss(reduction="mean", label_smoothing=args.label_smoothing)
-    optimizer = optim.SGD(model.parameters(), lr=args.base_lr, momentum=args.momentum, weight_decay=args.weight_decay, nesterov=True)
-    scheduler = optim.lr_scheduler.LambdaLR(optimizer, lr_lambda=lambda x: 0.5 *(1 + math.cos(math.pi * x / args.num_epochs)))
+    optimizer = optim.SGD(model.parameters(), lr=args.base_lr, momentum=args.momentum, weight_decay=args.weight_decay)
+    scheduler = optim.lr_scheduler.MultiStepLR(optimizer, milestones=args.lr_decay, gamma=0.1)
     scaler = amp.GradScaler(enabled=not args.no_amp)
 
     model = model.cuda(args.rank)
@@ -208,10 +208,12 @@ def main_work(rank, world_size, args, logger):
                 torch.save(save_opt, args.weight_dir / "best.pt")
 
         scheduler.step()
-        
-    if eval_text and args.rank == 0:
+
+    if args.rank == 0:
         logging.warning(f"[Best Performance at {best_epoch}]\n{best_perf_str}")
-        
+
+    cleanup()
+
 
 
 if __name__ == "__main__":
@@ -221,7 +223,6 @@ if __name__ == "__main__":
         torch.multiprocessing.set_start_method('spawn', force=True)
         logger = setup_primary_logging(args.exp_path / 'train.log')
         mp.spawn(main_work, args=(args.world_size, args, logger), nprocs=args.world_size, join=True)
-        cleanup(world_size=args.world_size)
     else:
         logger = build_basic_logger(args.exp_path / "train.log")
         main_work(rank=0, world_size=1, args=args, logger=logger)
