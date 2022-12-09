@@ -76,6 +76,7 @@ def train(args, dataloader, model, criterion, optimizer, scaler):
     
     del images, predictions, labels
     torch.cuda.empty_cache()
+    
     loss_str = f"[Train-Epoch:{epoch:03d}] Loss: {sum_loss/len(dataloader):.4f}\t"
     return loss_str
 

@@ -51,6 +51,7 @@ def validate(args, dataloader, model, epoch=0):
         
     del images, predictions
     torch.cuda.empty_cache()
+    
     sum_top1_acc /= len(dataloader)
     acc_str = f"[Val-Epoch:{epoch:03d}] Top-1 Acc: {sum_top1_acc:.2f}"
     return sum_top1_acc, acc_str
