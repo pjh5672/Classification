@@ -208,12 +208,10 @@ def main_work(rank, world_size, args, logger):
             if top1_acc > best_score:
                 best_epoch, best_score, best_perf_str = epoch, top1_acc, eval_text
                 torch.save(save_opt, args.weight_dir / "best.pt")
-
         scheduler.step()
 
     if args.rank == 0:
         logging.warning(f"[Best Performance at {best_epoch}]\n{best_perf_str}")
-
     cleanup()
 
 

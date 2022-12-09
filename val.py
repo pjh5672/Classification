@@ -57,7 +57,6 @@ def validate(args, dataloader, model, epoch=0):
     return sum_top1_acc, acc_str
 
 
-
 def parse_args():
     parser = argparse.ArgumentParser()
     parser.add_argument("--exp", type=str, required=True, help="Name to log training")
