@@ -13,7 +13,7 @@
 
 ## [Description]
 
-This is a repository for PyTorch training implementation of general classifier.    
+This is a repository for PyTorch training implementation of general purposed classifier.    
 
 ![result](./asset/data.jpg)
 
@@ -38,7 +38,7 @@ python train.py --exp my_test --data imagenet.yaml --model resnet18
 
 #### Classification Evaluation
 
- - It computes Top-1 and Top-5 accuracy. Top-1 accuracy is the conventional accuracy: the model answer (the one with highest probability) must be exactly the expected answer. Top-5 accuracy means that any of your model 5 highest probability answers must match the expected answer.
+ - It computes Top-1 accuracy. Top-1 accuracy is the conventional accuracy, the model answer (the one with highest probability) must be exactly the expected answer. 
 
 ```python
 python val.py --exp my_test --data voc.yaml --ckpt_name best.pt
