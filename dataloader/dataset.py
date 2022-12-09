@@ -21,12 +21,11 @@ def build_dataset(yaml_path, input_size, mean=MEAN, std=STD):
         "train": ImageFolder(
             root=train_root, 
             transform=transforms.Compose([
-                transforms.RandomResizedCrop(size=input_size, scale=(0.08, 1.0), ratio=(3/4, 4/3)),
                 transforms.RandomHorizontalFlip(p=0.5),
+                transforms.RandomResizedCrop(size=input_size, scale=(0.08, 1.0), ratio=(3/4, 4/3)),
                 transforms.ColorJitter(brightness=(0.6, 1.4), saturation=(0.6, 1.4), hue=(-0.4, 0.4)),
                 transforms.ToTensor(),
-                transforms.Normalize(mean=mean, std=std)
-            ])
+                transforms.Normalize(mean=mean, std=std)])
         ),
         "val":  ImageFolder(
             root=val_root, 
@@ -34,8 +33,7 @@ def build_dataset(yaml_path, input_size, mean=MEAN, std=STD):
                 transforms.Resize(size=256),
                 transforms.CenterCrop(size=224),
                 transforms.ToTensor(),
-                transforms.Normalize(mean=mean, std=std)
-            ])
+                transforms.Normalize(mean=mean, std=std)])
         ),
     }
     return dataset, class_list
@@ -63,6 +61,7 @@ if __name__ == "__main__":
     print(len(dataset["train"]), len(dataset["val"]))
     for index, minibatch in enumerate(train_dataloader):
         images, labels = minibatch[0], minibatch[1]
+        print(images)
         print(images.shape, labels)
         if index == 0:
             break
