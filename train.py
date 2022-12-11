@@ -85,7 +85,7 @@ def parse_args(make_dirs=True):
     parser = argparse.ArgumentParser()
     parser.add_argument("--exp", type=str, required=True, help="Name to log training")
     parser.add_argument("--resume", type=str, nargs='?', const=True ,help="Name to resume path")
-    parser.add_argument("--data", type=str, default="toy.yaml", help="Path to data.yaml")
+    parser.add_argument("--data", type=str, default="imagenet.yaml", help="Path to data.yaml")
     parser.add_argument("--model", type=str, default="resnet18", help="Model architecture")
     parser.add_argument("--img_size", type=int, default=224, help="Model input size")
     parser.add_argument("--batch_size", type=int, default=256, help="Batch size")
