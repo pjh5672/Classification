@@ -176,9 +176,9 @@ def main_work(rank, world_size, args, logger):
     
     #################################### Train Model ####################################
     if args.rank == 0:
-        progress_bar = trange(start_epoch, args.num_epochs, total=args.num_epochs, initial=start_epoch, ncols=115)
+        progress_bar = trange(start_epoch, args.num_epochs+1, total=args.num_epochs, initial=start_epoch, ncols=115)
     else:
-        progress_bar = range(start_epoch, args.num_epochs)
+        progress_bar = range(start_epoch, args.num_epochs+1)
 
     best_epoch, best_score, best_perf_str = 0, 0, ""
 
