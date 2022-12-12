@@ -33,10 +33,10 @@ This is a repository for PyTorch training implementation of general purposed cla
 
 #### Model Training 
 
- - You can train various classifier architectures (ResNet18, ResNet34, ResNet50, ResNet101, DarkNet19, DarkNet53, and CSP-DarkNet53). We support finetune training for parameter changes. For finetuning, put the file with the model name into the "./weights" directory and add "--finetune" command in training command. In addition, you can change model with depth-wise separable convolution layers with adding "--depthwise".
+ - You can train various classifier architectures (ResNet18, ResNet34, ResNet50, ResNet101, DarkNet19, DarkNet53, and CSP-DarkNet53). In addition, you can change model with depth-wise separable convolution layers with adding "--depthwise".
 
 ```python
-python train.py --exp my_test --data imagenet.yaml --model resnet18 --finetune (optional) --depthwise (optional)
+python train.py --exp my_test --data imagenet.yaml --model resnet18 --depthwise (optional)
                                                    --model resnet34
                                                    --model resnet50
                                                    --model resnet101
