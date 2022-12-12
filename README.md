@@ -1,4 +1,4 @@
-# <div align="center">Classification</div>
+# <div align="center">Image Classification</div>
 
 ---
 
