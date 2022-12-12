@@ -15,12 +15,14 @@
 
 This is a repository for PyTorch training implementation of general purposed classifier. With the training code, various feature extractor, also known as backbone architectures can be created.   
 
+
  - **Performance Table**
 
 | Model | Dataset | Train | Valid | Size<br><sup>(pixel) | Accuracy<br><sup>(Top-1) | Params<br><sup>(M) | FLOPs<br><sup>(B) |
 | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: | 
 | ResNet18<br><sup>(<u>Our:star:</u>)</br> | IMAGENET | train2012 | val2012 | 224 | 68.29 | 11.69 | 3.65 |
 | DarkNet19<br><sup>(<u>Our:star:</u>)</br> | IMAGENET | train2012 | val2012 | 224 | 72.79 | 20.84 | 5.62 |
+
 
 ![result](./asset/data.jpg)
 
