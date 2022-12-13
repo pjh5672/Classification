@@ -36,14 +36,14 @@ from val import validate
 
 
 def setup(rank, world_size):
-    if OS_SYSTEM == 'Linux':
-        os.environ['MASTER_ADDR'] = 'localhost'
-        os.environ['MASTER_PORT'] = '12355'
-        dist.init_process_group('nccl', rank=rank, world_size=world_size)
+    if OS_SYSTEM == "Linux":
+        os.environ["MASTER_ADDR"] = "localhost"
+        os.environ["MASTER_PORT"] = "12355"
+        dist.init_process_group("nccl", rank=rank, world_size=world_size)
 
 
 def cleanup():
-    if OS_SYSTEM == 'Linux':
+    if OS_SYSTEM == "Linux":
         dist.destroy_process_group()
 
 
@@ -84,7 +84,6 @@ def train(args, dataloader, model, criterion, optimizer, scaler):
 def parse_args(make_dirs=True):
     parser = argparse.ArgumentParser()
     parser.add_argument("--exp", type=str, required=True, help="Name to log training")
-    parser.add_argument("--resume", type=str, nargs='?', const=True ,help="Name to resume path")
     parser.add_argument("--data", type=str, default="imagenet.yaml", help="Path to data.yaml")
     parser.add_argument("--model", type=str, default="resnet18", help="Model architecture")
     parser.add_argument("--img_size", type=int, default=224, help="Model input size")
@@ -102,6 +101,7 @@ def parse_args(make_dirs=True):
     parser.add_argument("--width_multiple", type=float, default=1.0, help="CSP-Layer channel multiple")
     parser.add_argument("--depth_multiple", type=float, default=1.0, help="CSP-Model depth multiple")
     parser.add_argument("--depthwise", action="store_true", help="Use of Depth-separable conv operation")
+    parser.add_argument("--resume", action="store_true", help="Name to resume path")
 
     args = parser.parse_args()
     args.data = ROOT / "data" / args.data
@@ -148,7 +148,7 @@ def main_work(rank, world_size, args, logger):
     scaler = amp.GradScaler(enabled=not args.no_amp)
 
     model = model.cuda(args.rank)
-    if OS_SYSTEM == 'Linux':
+    if OS_SYSTEM == "Linux":
         model = DDP(model, device_ids=[args.rank])
         dist.barrier()
     #################################### Load Model #####################################
@@ -219,9 +219,9 @@ def main_work(rank, world_size, args, logger):
 if __name__ == "__main__":
     args = parse_args(make_dirs=True)
 
-    if OS_SYSTEM == 'Linux':
-        torch.multiprocessing.set_start_method('spawn', force=True)
-        logger = setup_primary_logging(args.exp_path / 'train.log')
+    if OS_SYSTEM == "Linux":
+        torch.multiprocessing.set_start_method("spawn", force=True)
+        logger = setup_primary_logging(args.exp_path / "train.log")
         mp.spawn(main_work, args=(args.world_size, args, logger), nprocs=args.world_size, join=True)
     else:
         logger = build_basic_logger(args.exp_path / "train.log")

@@ -63,7 +63,6 @@ def parse_args():
     parser.add_argument("--data", type=str, default="imagenet.yaml", help="Path to data.yaml")
     parser.add_argument("--img_size", type=int, default=224, help="Model input size")
     parser.add_argument("--batch_size", type=int, default=16, help="Batch size")
-    parser.add_argument("--num_epochs", type=int, default=1, help="Number of training epochs")
     parser.add_argument("--ckpt_name", type=str, default="best.pt", help="Path to trained model")
     parser.add_argument("--rank", type=int, default=0, help="Process id for computation")
     parser.add_argument("--workers", type=int, default=8, help="Number of workers used in dataloader")
@@ -88,7 +87,7 @@ def main():
     model.load_state_dict(ckpt["model_state"], strict=True)
     model = model.cuda(args.rank)
 
-    val_loader = tqdm(val_loader, desc=f"[VAL:{0:03d}/{args.num_epochs:03d}]", ncols=115, leave=False)
+    val_loader = tqdm(val_loader, desc="[VAL]", ncols=115, leave=False)
     _, eval_text = validate(args=args, dataloader=val_loader, model=model)
     logger.info(f"[Validation Result]\n{eval_text}")
     

@@ -8,6 +8,7 @@ if str(ROOT) not in sys.path:
 from resnet import build_resnet
 from darknet19 import build_darknet19
 from darknet53 import build_darknet53
+from darknet53_tiny import build_darknet53_tiny
 from cspdarknet53 import build_CSPdarknet53
 
 
@@ -19,6 +20,8 @@ def build_model(arch_name, num_classes=1000, width_multiple=1.0, depth_multiple=
         model = build_darknet19(num_classes=num_classes, depthwise=depthwise)
     elif arch_name == "darknet53":
         model = build_darknet53(num_classes=num_classes, depthwise=depthwise)
+    elif arch_name == "darknet53_tiny":
+        model = build_darknet53_tiny(num_classes=num_classes, depthwise=depthwise)
     elif arch_name == "cspdarknet53":
         model = build_CSPdarknet53(num_classes=num_classes, width_multiple=width_multiple, depth_multiple=depth_multiple, depthwise=depthwise)
     else:
