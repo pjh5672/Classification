@@ -83,7 +83,7 @@ def main():
     val_loader = DataLoader(dataset=dataset["val"], batch_size=args.batch_size, shuffle=False, pin_memory=True, num_workers=args.workers)
     ckpt = torch.load(args.ckpt_path, map_location = {"cpu":"cuda:%d" %args.rank})
     
-    model = build_model(arch_name=ckpt["model"], num_classes=len(ckpt["class_list"]), width_multiple=ckpt["width_multiple"], depth_multiple=ckpt["depth_multiple"], depthwise=ckpt["depthwise"])
+    model = build_model(arch_name=ckpt["model"], num_classes=len(ckpt["class_list"]), width_multiple=ckpt["width_multiple"], depth_multiple=ckpt["depth_multiple"])
     model.load_state_dict(ckpt["model_state"], strict=True)
     model = model.cuda(args.rank)
 

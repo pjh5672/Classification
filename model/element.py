@@ -21,12 +21,12 @@ def weight_init_kaiming_uniform(module):
 
 
 class CSPStage(nn.Module):
-    def __init__(self, c1, num_blocks=1, depthwise=False):
+    def __init__(self, c1, num_blocks=1):
         super().__init__()
         c_ = c1 // 2  # hidden channels
         self.conv1 = Conv(c1, c_, kernel_size=1)
         self.conv2 = Conv(c1, c_, kernel_size=1)
-        self.res_blocks = nn.Sequential(*[ResBlock(in_channels=c_, depthwise=depthwise) for _ in range(num_blocks)])
+        self.res_blocks = nn.Sequential(*[ResBlock(in_channels=c_) for _ in range(num_blocks)])
         self.conv3 = Conv(c_*2, c1, kernel_size=1)
 
     def forward(self, x):
@@ -64,11 +64,11 @@ class Conv(nn.Module):
 
 
 class ResBlock(nn.Module):
-    def __init__(self, in_channels, depthwise=False):
+    def __init__(self, in_channels):
         super().__init__()
         assert in_channels % 2 == 0
-        self.conv1 = Conv(in_channels, in_channels//2, kernel_size=1, padding=0, depthwise=depthwise)
-        self.conv2 = Conv(in_channels//2, in_channels, kernel_size=3, padding=1, depthwise=depthwise)
+        self.conv1 = Conv(in_channels, in_channels//2, kernel_size=1, padding=0)
+        self.conv2 = Conv(in_channels//2, in_channels, kernel_size=3, padding=1)
     
     def forward(self, x):
         residual = x
