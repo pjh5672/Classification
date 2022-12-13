@@ -49,7 +49,7 @@ def build_darknet53(num_classes=1000, depthwise=False):
 if __name__ == "__main__":
     input_size = 224
     num_classes = 1000
-    device = torch.device('cpu')
+    device = torch.device("cpu")
     model = build_darknet53(num_classes=num_classes, depthwise=False)
 
     x = torch.randn(2, 3, input_size, input_size).to(device)

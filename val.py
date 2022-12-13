@@ -11,7 +11,7 @@ from tqdm import tqdm
 from torch.utils.data import DataLoader
 
 ROOT = Path(__file__).resolve().parents[0]
-TIMESTAMP = datetime.today().strftime('%Y-%m-%d_%H-%M')
+TIMESTAMP = datetime.today().strftime("%Y-%m-%d_%H-%M")
 OS_SYSTEM = platform.system()
 SEED = 2023
 torch.manual_seed(SEED)

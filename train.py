@@ -23,7 +23,7 @@ from torch.nn.parallel import DistributedDataParallel as DDP
 
 ROOT = Path(__file__).resolve().parents[0]
 OS_SYSTEM = platform.system()
-TIMESTAMP = datetime.today().strftime('%Y-%m-%d_%H-%M')
+TIMESTAMP = datetime.today().strftime("%Y-%m-%d_%H-%M")
 cudnn.benchmark = True
 SEED = 2023
 random.seed(SEED)
@@ -69,7 +69,7 @@ def train(args, dataloader, model, criterion, optimizer, scaler):
         optimizer.zero_grad()
 
         if not torch.isfinite(loss):
-            print(f'############## Loss is Nan/Inf ! ##############')
+            print(f"############## Loss is Nan/Inf ! ##############")
             sys.exit(0)
         else:
             sum_loss += loss.item()
@@ -121,7 +121,7 @@ def main_work(rank, world_size, args, logger):
     torch.manual_seed(SEED)
     torch.cuda.set_device(rank)
 
-    if OS_SYSTEM == 'Linux':
+    if OS_SYSTEM == "Linux":
         import logging
         setup_worker_logging(rank, logger)
     else:
@@ -167,7 +167,7 @@ def main_work(rank, world_size, args, logger):
                 if isinstance(v, torch.Tensor):
                     state[k] = v.cuda(args.rank)
         scheduler.load_state_dict(ckpt["scheduler_state"])
-        scaler.load_state_dict(ckpt['scaler_state_dict'])
+        scaler.load_state_dict(ckpt["scaler_state_dict"])
     else:
         start_epoch = 1
         if args.rank == 0:
@@ -198,7 +198,7 @@ def main_work(rank, world_size, args, logger):
                         "model_state": deepcopy(model.module).state_dict() if hasattr(model, "module") else deepcopy(model).state_dict(),
                         "optimizer_state": optimizer.state_dict(),
                         "scheduler_state": scheduler.state_dict(),
-                        'scaler_state_dict': scaler.state_dict()}
+                        "scaler_state_dict": scaler.state_dict()}
             torch.save(save_opt, args.weight_dir / "last.pt")
 
             val_loader = tqdm(val_loader, desc=f"[VAL:{epoch:03d}/{args.num_epochs:03d}]", ncols=115, leave=False)
