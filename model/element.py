@@ -12,22 +12,6 @@ def weight_init_kaiming_uniform(module):
 
 
 
-class CSPStage(nn.Module):
-    def __init__(self, c1, num_blocks=1):
-        super().__init__()
-        c_ = c1 // 2  # hidden channels
-        self.conv1 = Conv(c1, c_, kernel_size=1, act="mish")
-        self.conv2 = Conv(c1, c_, kernel_size=1, act="mish")
-        self.res_blocks = nn.Sequential(*[ResBlock(in_channels=c_, act="mish") for _ in range(num_blocks)])
-        self.conv3 = Conv(c_*2, c1, kernel_size=1, act="mish")
-
-    def forward(self, x):
-        y1 = self.conv1(x)
-        y2 = self.res_blocks(self.conv2(x))
-        return self.conv3(torch.cat([y1, y2], dim=1))
-
-
-
 class Mish(nn.Module):
     def __init__(self):
         super().__init__()
@@ -70,7 +54,23 @@ class Conv(nn.Module):
 
     def forward(self, x):
         return self.conv(x)
-         
+
+
+
+class CSPStage(nn.Module):
+    def __init__(self, c1, num_blocks=1):
+        super().__init__()
+        c_ = c1 // 2  # hidden channels
+        self.conv1 = Conv(c1, c_, kernel_size=1, act="mish")
+        self.conv2 = Conv(c1, c_, kernel_size=1, act="mish")
+        self.res_blocks = nn.Sequential(*[ResBlock(in_channels=c_, act="mish") for _ in range(num_blocks)])
+        self.conv3 = Conv(c_*2, c1, kernel_size=1, act="mish")
+
+    def forward(self, x):
+        y1 = self.conv1(x)
+        y2 = self.res_blocks(self.conv2(x))
+        return self.conv3(torch.cat([y1, y2], dim=1))
+
 
 
 class ResBlock(nn.Module):
