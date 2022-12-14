@@ -13,7 +13,7 @@
 
 ## [Description]
 
-This is a repository for PyTorch training implementation of general purposed classifier. With the training code, various feature extractor, also known as backbone architectures can be created.  In addition, you can finetune classifier adding "--pretrained" in training command after putting the weight files into "./weights" directory with {model name}. 
+This is a repository for PyTorch training implementation of general purposed classifier. With the training code, various feature extractor, also known as backbone architectures can be created.  
 
 
  - **Performance Table**
@@ -37,10 +37,11 @@ This is a repository for PyTorch training implementation of general purposed cla
 
 #### Model Training 
 
- - You can train various classifier architectures (ResNet18, ResNet34, ResNet50, ResNet101, DarkNet19, DarkNet53, and CSP-DarkNet53).
+ - You can train various classifier architectures (ResNet18, ResNet34, ResNet50, ResNet101, DarkNet19, DarkNet53, and CSP-DarkNet53). In addition, you can finetune classifier adding "--pretrained" in training command after putting the weight files into "./weights" directory with {model name}.  
+
 
 ```python
-python train.py --exp my_test --data imagenet.yaml --model resnet18
+python train.py --exp my_test --data imagenet.yaml --model resnet18 --pretrained (optional)
                                                    --model resnet34
                                                    --model resnet50
                                                    --model resnet101
