@@ -1,6 +1,8 @@
 import sys
 from pathlib import Path
 
+import torch
+
 ROOT = Path(__file__).resolve().parents[0]
 if str(ROOT) not in sys.path:
     sys.path.append(str(ROOT))
@@ -34,8 +36,6 @@ def build_model(arch_name, num_classes=1000, width_multiple=1.0, depth_multiple=
 
 
 if __name__ == "__main__":
-    import torch
-
     input_size = 224
     num_classes = 1000
     device = torch.device('cpu')
