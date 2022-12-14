@@ -12,15 +12,6 @@ def weight_init_kaiming_uniform(module):
 
 
 
-class Mish(nn.Module):
-    def __init__(self):
-        super().__init__()
-
-    def forward(self, x):
-        return x * torch.tanh(F.softplus(x))
-
-
-
 class CSPStage(nn.Module):
     def __init__(self, c1, num_blocks=1):
         super().__init__()
@@ -36,6 +27,15 @@ class CSPStage(nn.Module):
         return self.conv3(torch.cat([y1, y2], dim=1))
 
 
+
+class Mish(nn.Module):
+    def __init__(self):
+        super().__init__()
+
+    def forward(self, x):
+        return x * torch.tanh(F.softplus(x))
+
+        
 
 class Conv(nn.Module):
     def __init__(self, c1, c2, kernel_size, stride=1, padding=0, dilation=1, act="leaky_relu", depthwise=False):
