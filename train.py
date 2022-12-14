@@ -88,7 +88,7 @@ def parse_args(make_dirs=True):
     parser.add_argument("--model", type=str, default="resnet18", help="Model architecture")
     parser.add_argument("--img_size", type=int, default=224, help="Model input size")
     parser.add_argument("--batch_size", type=int, default=256, help="Batch size")
-    parser.add_argument("--num_epochs", type=int, default=120, help="Number of training epochs")
+    parser.add_argument("--num_epochs", type=int, default=150, help="Number of training epochs")
     parser.add_argument("--warmup", type=int, default=5, help="Epochs for warming up training")
     parser.add_argument("--base_lr", type=float, default=0.1, help="Base learning rate")
     parser.add_argument("--momentum", type=float, default=0.9, help="Momentum")

@@ -39,7 +39,7 @@ if __name__ == "__main__":
     input_size = 224
     num_classes = 1000
     device = torch.device('cpu')
-    model = build_model(arch_name="darknet19", num_classes=1000, width_multiple=1.0, depth_multiple=1.0, pretrained=False)
+    model = build_model(arch_name="csp-darknet53", num_classes=1000, width_multiple=1.0, depth_multiple=1.0, pretrained=False)
 
     x = torch.randn(2, 3, input_size, input_size).to(device)
     y = model(x)

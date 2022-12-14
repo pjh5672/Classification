@@ -33,9 +33,9 @@ class Darknet53(nn.Module):
 
     def build_conv_and_resblock(self, in_channels, out_channels, num_blocks):
         model = nn.Sequential()
-        model.add_module("conv", Conv(in_channels, out_channels, kernel_size=3, stride=2, padding=1))
+        model.add_module("conv", Conv(in_channels, out_channels, kernel_size=3, stride=2, padding=1, act="leaky_relu"))
         for idx in range(num_blocks):
-            model.add_module(f"res{idx}", ResBlock(out_channels))
+            model.add_module(f"res{idx}", ResBlock(out_channels, act="leaky_relu"))
         return model
 
 

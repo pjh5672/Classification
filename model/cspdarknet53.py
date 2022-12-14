@@ -11,23 +11,23 @@ class CSPDarknet53(nn.Module):
         depth_cfg = [int(d*depth_multiple) for d in (1, 3, 9, 9, 6)]
 
         self.layer1 = nn.Sequential(
-            Conv(3, width_cfg[0], kernel_size=6, padding=2, stride=2),
+            Conv(3, width_cfg[0], kernel_size=6, padding=2, stride=2, act="mish"),
             CSPStage(c1=width_cfg[0], num_blocks=1)
         )
         self.layer2 = nn.Sequential(
-            Conv(width_cfg[0], width_cfg[1], kernel_size=3, padding=1, stride=2),
+            Conv(width_cfg[0], width_cfg[1], kernel_size=3, padding=1, stride=2, act="mish"),
             CSPStage(c1=width_cfg[1], num_blocks=depth_cfg[1])
         )
         self.layer3 = nn.Sequential(
-            Conv(width_cfg[1], width_cfg[2], kernel_size=3, padding=1, stride=2),
+            Conv(width_cfg[1], width_cfg[2], kernel_size=3, padding=1, stride=2, act="mish"),
             CSPStage(c1=width_cfg[2], num_blocks=depth_cfg[2])
         )
         self.layer4 = nn.Sequential(
-            Conv(width_cfg[2], width_cfg[3], kernel_size=3, padding=1, stride=2),
+            Conv(width_cfg[2], width_cfg[3], kernel_size=3, padding=1, stride=2, act="mish"),
             CSPStage(c1=width_cfg[3], num_blocks=depth_cfg[3])
         )
         self.layer5 = nn.Sequential(
-            Conv(width_cfg[3], width_cfg[4], kernel_size=3, padding=1, stride=2),
+            Conv(width_cfg[3], width_cfg[4], kernel_size=3, padding=1, stride=2, act="mish"),
             CSPStage(c1=width_cfg[4], num_blocks=depth_cfg[4])
         )
         self.avgpool = nn.AdaptiveAvgPool2d((1, 1))

@@ -7,12 +7,12 @@ from element import Conv, ResBlock, weight_init_kaiming_uniform
 class Darknet53_tiny(nn.Module):
     def __init__(self, num_classes):
         super().__init__()
-        self.conv1 = Conv(3, 16, kernel_size=3, padding=1, stride=1)
-        self.conv2 = Conv(16, 32, kernel_size=3, padding=1, stride=1)
-        self.conv3 = Conv(32, 64, kernel_size=3, padding=1, stride=1)
-        self.conv4 = Conv(64, 128, kernel_size=3, padding=1, stride=1)
-        self.conv5 = Conv(128, 256, kernel_size=3, padding=1, stride=1)
-        self.conv6 = Conv(256, 512, kernel_size=3, padding=1, stride=1)
+        self.conv1 = Conv(3, 16, kernel_size=3, padding=1, stride=1, act="leaky_relu")
+        self.conv2 = Conv(16, 32, kernel_size=3, padding=1, stride=1, act="leaky_relu")
+        self.conv3 = Conv(32, 64, kernel_size=3, padding=1, stride=1, act="leaky_relu")
+        self.conv4 = Conv(64, 128, kernel_size=3, padding=1, stride=1, act="leaky_relu")
+        self.conv5 = Conv(128, 256, kernel_size=3, padding=1, stride=1, act="leaky_relu")
+        self.conv6 = Conv(256, 512, kernel_size=3, padding=1, stride=1, act="leaky_relu")
         self.maxpool = nn.MaxPool2d(kernel_size=2, stride=2)
         self.avgpool = nn.AdaptiveAvgPool2d((1, 1))
         self.zeropad = nn.ZeroPad2d((0, 1, 0, 1))

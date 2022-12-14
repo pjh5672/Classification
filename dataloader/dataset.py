@@ -30,8 +30,8 @@ def build_dataset(yaml_path, input_size, mean=MEAN, std=STD):
         "val":  ImageFolder(
             root=val_root, 
             transform=transforms.Compose([
-                transforms.Resize(size=256),
-                transforms.CenterCrop(size=224),
+                transforms.Resize(size=int(input_size*1.05)),
+                transforms.CenterCrop(size=input_size),
                 transforms.ToTensor(),
                 transforms.Normalize(mean=mean, std=std)])
         ),
