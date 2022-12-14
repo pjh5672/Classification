@@ -7,7 +7,7 @@ from element import Conv, ResBlock, weight_init_kaiming_uniform
 class Darknet53(nn.Module):
     def __init__(self, num_classes):
         super().__init__()
-        self.conv1 = Conv(3, 32, kernel_size=3, padding=1)
+        self.conv1 = Conv(3, 32, kernel_size=3, padding=1, act="leaky_relu")
         self.res_block1 = self.build_conv_and_resblock(in_channels=32, out_channels=64, num_blocks=1)
         self.res_block2 = self.build_conv_and_resblock(in_channels=64, out_channels=128, num_blocks=2)
         self.res_block3 = self.build_conv_and_resblock(in_channels=128, out_channels=256, num_blocks=8)
