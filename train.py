@@ -100,7 +100,7 @@ def parse_args(make_dirs=True):
     parser.add_argument("--no_amp", action="store_true", help="Use of FP32 training (default: AMP training)")
     parser.add_argument("--width_multiple", type=float, default=1.0, help="CSP-Layer channel multiple")
     parser.add_argument("--depth_multiple", type=float, default=1.0, help="CSP-Model depth multiple")
-    parser.add_argument("--pretrained", action="store_true", help="Scratch training without pretrained weights")
+    parser.add_argument("--pretrained", action="store_true", help="Training with pretrained weights")
     parser.add_argument("--resume", action="store_true", help="Name to resume path")
 
     args = parser.parse_args()
