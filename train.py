@@ -55,7 +55,7 @@ def train(args, dataloader, model, criterion, optimizer, scaler):
     for i, minibatch in enumerate(dataloader):
         ni = i + len(dataloader) * (epoch - 1)
         if ni <= args.nw:
-            set_lr(optimizer, args.base_lr * pow(ni / (args.nw), 2))
+            set_lr(optimizer, args.base_lr * pow(ni / (args.nw), 4))
 
         images, labels = minibatch[0], minibatch[1]
 
@@ -92,7 +92,7 @@ def parse_args(make_dirs=True):
     parser.add_argument("--warmup", type=int, default=5, help="Epochs for warming up training")
     parser.add_argument("--base_lr", type=float, default=0.1, help="Base learning rate")
     parser.add_argument("--momentum", type=float, default=0.9, help="Momentum")
-    parser.add_argument("--weight_decay", type=float, default=1e-4, help="Weight decay")
+    parser.add_argument("--weight_decay", type=float, default=5e-4, help="Weight decay")
     parser.add_argument("--label_smoothing", type=float, default=0.1, help="Label smoothing")
     parser.add_argument("--workers", type=int, default=8, help="Number of workers used in dataloader")
     parser.add_argument("--world_size", type=int, default=1, help="Number of available GPU devices")
