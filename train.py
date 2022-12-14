@@ -100,6 +100,7 @@ def parse_args(make_dirs=True):
     parser.add_argument("--no_amp", action="store_true", help="Use of FP32 training (default: AMP training)")
     parser.add_argument("--width_multiple", type=float, default=1.0, help="CSP-Layer channel multiple")
     parser.add_argument("--depth_multiple", type=float, default=1.0, help="CSP-Model depth multiple")
+    parser.add_argument("--pretrained", action="store_true", help="Scratch training without pretrained weights")
     parser.add_argument("--resume", action="store_true", help="Name to resume path")
 
     args = parser.parse_args()
@@ -139,7 +140,8 @@ def main_work(rank, world_size, args, logger):
     val_loader = DataLoader(dataset=dataset["val"], batch_size=args.batch_size, shuffle=False, pin_memory=True, num_workers=args.workers)
     args.nw = max(round(args.warmup * len(train_loader)), 100)
 
-    model = build_model(arch_name=args.model, num_classes=len(class_list), width_multiple=args.width_multiple, depth_multiple=args.depth_multiple)
+    model = build_model(arch_name=args.model, num_classes=len(class_list), 
+                        width_multiple=args.width_multiple, depth_multiple=args.depth_multiple, pretrained=args.pretrained)
     macs, params = profile(deepcopy(model), inputs=(torch.randn(1, 3, args.img_size, args.img_size),), verbose=False)
     criterion = nn.CrossEntropyLoss(label_smoothing=args.label_smoothing)
     optimizer = optim.SGD(model.parameters(), args.base_lr, momentum=args.momentum, weight_decay=args.weight_decay)

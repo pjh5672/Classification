@@ -20,8 +20,12 @@ This is a repository for PyTorch training implementation of general purposed cla
 
 | Model | Dataset | Train | Valid | Size<br><sup>(pixel) | Accuracy<br><sup>(Top-1) | Params<br><sup>(M) | FLOPs<br><sup>(B) |
 | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: |
+| Resnet18<br><sup>(<u>Doc:page_with_curl:</u>)</br> | ImageNet | train2012 | val2012 | 224 | 70.70 | *not reported* | 4.69 |
+| Darknet19 224<br><sup>(<u>Doc:page_with_curl:</u>)</br> | ImageNet | train2012 | val2012 | 224 | 72.90 | *not reported* | 7.29 |
+| Darknet19 448<br><sup>(<u>Doc:page_with_curl:</u>)</br> | ImageNet | train2012 | val2012 | 448 | 76.40 | *not reported* | 22.33 |
 | Resnet18<br><sup>(<u>Our:star:</u>)</br> | ImageNet | train2012 | val2012 | 224 | 68.29 | 11.69 | 3.65 |
-| Darknet19<br><sup>(<u>Our:star:</u>)</br> | ImageNet | train2012 | val2012 | 224 | 72.79 | 20.84 | 5.62 |
+| Darknet19 224<br><sup>(<u>Our:star:</u>)</br> | ImageNet | train2012 | val2012 | 224 | 72.79 | 20.84 | 5.62 |
+| Darknet19 448<br><sup>(<u>Our:star:</u>)</br> | ImageNet | train2012 | val2012 | 448 | - | - | 20.48 |
 
 
 ![result](./asset/data.jpg)
