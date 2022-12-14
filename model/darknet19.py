@@ -34,7 +34,7 @@ class Darknet19(nn.Module):
             Conv(512, 1024, kernel_size=3, padding=1, act="leaky_relu"),
         )
         self.conv7 = nn.Conv2d(1024, num_classes, kernel_size=1)
-        self.pool = nn.MaxPool2d(kernel_size=(2,2), stride=2)
+        self.pool = nn.MaxPool2d(kernel_size=(2, 2), stride=2)
         self.avgpool = nn.AdaptiveAvgPool2d((1, 1))
         self.apply(weight_init_kaiming_uniform)
 
