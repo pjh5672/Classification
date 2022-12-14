@@ -13,7 +13,7 @@
 
 ## [Description]
 
-This is a repository for PyTorch training implementation of general purposed classifier. With the training code, various feature extractor, also known as backbone architectures can be created.   
+This is a repository for PyTorch training implementation of general purposed classifier. With the training code, various feature extractor, also known as backbone architectures can be created.  In addition, you can finetune classifier adding "--pretrained" in training command after putting the weight files into "./weights" directory with "the model name". 
 
 
  - **Performance Table**
