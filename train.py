@@ -88,7 +88,8 @@ def parse_args(make_dirs=True):
     parser.add_argument("--model", type=str, default="resnet18", help="Model architecture")
     parser.add_argument("--img_size", type=int, default=224, help="Model input size")
     parser.add_argument("--batch_size", type=int, default=256, help="Batch size")
-    parser.add_argument("--num_epochs", type=int, default=120, help="Number of training epochs")
+    parser.add_argument("--num_epochs", type=int, default=150, help="Number of training epochs")
+    parser.add_argument("--lr_decay", nargs="+", default=[60, 90, 120], type=int, help="Epoch to learning rate decay")
     parser.add_argument("--warmup", type=int, default=5, help="Epochs for warming up training")
     parser.add_argument("--base_lr", type=float, default=0.1, help="Base learning rate")
     parser.add_argument("--momentum", type=float, default=0.9, help="Momentum")
@@ -145,7 +146,7 @@ def main_work(rank, world_size, args, logger):
     macs, params = profile(deepcopy(model), inputs=(torch.randn(1, 3, args.img_size, args.img_size),), verbose=False)
     criterion = nn.CrossEntropyLoss(label_smoothing=args.label_smoothing)
     optimizer = optim.SGD(model.parameters(), args.base_lr, momentum=args.momentum, weight_decay=args.weight_decay)
-    scheduler = optim.lr_scheduler.StepLR(optimizer, step_size=30, gamma=0.1)
+    scheduler = optim.lr_scheduler.MultiStepLR(optimizer, milestones=args.lr_decay, gamma=0.1)
     scaler = amp.GradScaler(enabled=not args.no_amp)
 
     model = model.cuda(args.rank)
