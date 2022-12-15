@@ -1,10 +1,10 @@
 import torch
 from torch import nn
-from element import Conv, ResBlock, weight_init_kaiming_uniform
+from element import Conv, weight_init_kaiming_uniform
 
 
 
-class Darknet53_tiny(nn.Module):
+class DarkNet53_tiny(nn.Module):
     def __init__(self, num_classes):
         super().__init__()
         self.conv1 = Conv(3, 16, kernel_size=3, padding=1, stride=1, act="leaky_relu")
@@ -35,7 +35,7 @@ class Darknet53_tiny(nn.Module):
 
 
 def build_darknet53_tiny(num_classes=1000):
-    model = Darknet53_tiny(num_classes=num_classes)
+    model = DarkNet53_tiny(num_classes=num_classes)
     return model
 
 

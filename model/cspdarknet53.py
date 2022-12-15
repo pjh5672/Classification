@@ -4,7 +4,7 @@ from element import Conv, CSPStage, weight_init_kaiming_uniform
 
 
 
-class CSPDarknet53(nn.Module):
+class CSPDarkNet53(nn.Module):
     def __init__(self, num_classes, width_multiple=1.0, depth_multiple=1.0):
         super().__init__()
         width_cfg = [int(w*width_multiple) for w in (64, 128, 256, 512, 1024)]
@@ -48,7 +48,7 @@ class CSPDarknet53(nn.Module):
 
 
 def build_CSPdarknet53(num_classes=1000, width_multiple=1.0, depth_multiple=1.0):
-    model = CSPDarknet53(num_classes, width_multiple=width_multiple, depth_multiple=depth_multiple)
+    model = CSPDarkNet53(num_classes, width_multiple=width_multiple, depth_multiple=depth_multiple)
     return model
 
 
