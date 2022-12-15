@@ -4,7 +4,7 @@ from element import BasicBlock, BottleNeck, weight_init_kaiming_uniform
 
 
 
-class ResNet(nn.Module):
+class Resnet(nn.Module):
     def __init__(self, block, layers, num_classes, zero_init_residual=True):
         super().__init__()
         self.in_channels = 64
@@ -64,13 +64,13 @@ class ResNet(nn.Module):
 
 def build_resnet(arch_name="resnet18", num_classes=1000):
     if arch_name == "resnet18":
-        model = ResNet(block=BasicBlock, layers=[2, 2, 2, 2], num_classes=num_classes)
+        model = Resnet(block=BasicBlock, layers=[2, 2, 2, 2], num_classes=num_classes)
     elif arch_name == "resnet34":
-        model = ResNet(block=BasicBlock, layers=[3, 4, 6, 3], num_classes=num_classes)
+        model = Resnet(block=BasicBlock, layers=[3, 4, 6, 3], num_classes=num_classes)
     elif arch_name == "resnet50":
-        model = ResNet(block=BottleNeck, layers=[3, 4, 6, 3], num_classes=num_classes)
+        model = Resnet(block=BottleNeck, layers=[3, 4, 6, 3], num_classes=num_classes)
     elif arch_name == "resnet101":
-        model = ResNet(block=BottleNeck, layers=[3, 4, 23, 3], num_classes=num_classes)
+        model = Resnet(block=BottleNeck, layers=[3, 4, 23, 3], num_classes=num_classes)
     else:
         raise RuntimeError("Only support model in [vgg16, vgg16_bn, resnet18, resnet34, resnet50, resnet101]")
     return model
