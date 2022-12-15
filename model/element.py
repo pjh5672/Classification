@@ -3,12 +3,46 @@ from torch import nn
 import torch.nn.functional as F
 
 
+def make_divisible(v, divisor, min_value=None):
+    """
+    This function is taken from the original tf repo.
+    It ensures that all layers have a channel number that is divisible by 8
+    """
+    if min_value is None:
+        min_value = divisor
+    new_v = max(min_value, int(v + divisor / 2) // divisor * divisor)
+    # Make sure that round down does not go down by more than 10%.
+    if new_v < 0.9 * v:
+        new_v += divisor
+    return new_v
+
+
 def weight_init_kaiming_uniform(module):
     if isinstance(module, nn.Conv2d):
         nn.init.kaiming_normal_(module.weight, mode="fan_out", nonlinearity="leaky_relu")
     elif isinstance(module, nn.BatchNorm2d):
         module.weight.data.fill_(1.0)
         module.bias.data.fill_(0.0)
+
+
+
+class Hsigmoid(nn.Module):
+    def __init__(self, inplace=True):
+        super().__init__()
+        self.relu = nn.ReLU6(inplace=inplace)
+
+    def forward(self, x):
+        return self.relu(x + 3) / 6
+
+
+
+class Hswish(nn.Module):
+    def __init__(self, inplace=True):
+        super().__init__()
+        self.sigmoid = Hsigmoid(inplace=inplace)
+
+    def forward(self, x):
+        return x * self.sigmoid(x)
 
 
 
@@ -30,11 +64,15 @@ class Conv(nn.Module):
         elif act == "relu":
             act_func = nn.ReLU(inplace=True)
         elif act == "relu6":
-            act_func == nn.ReLU6(inplace=True)
+            act_func = nn.ReLU6(inplace=True)
         elif act == "leaky_relu":
             act_func = nn.LeakyReLU(0.1, inplace=True)
         elif act == "mish":
             act_func = Mish()
+        elif act == "hsigmoid":
+            act_func = Hsigmoid()
+        elif act == "hswish":
+            act_func = Hswish()
 
         if depthwise:
             self.conv = nn.Sequential(
@@ -57,6 +95,83 @@ class Conv(nn.Module):
 
     def forward(self, x):
         return self.conv(x)
+
+
+
+class SELayer(nn.Module):
+    def __init__(self, channel, reduction=4):
+        super().__init__()
+        self.avg_pool = nn.AdaptiveAvgPool2d(1)
+        self.fc = nn.Sequential(
+                nn.Linear(channel, make_divisible(channel // reduction, 8)),
+                nn.ReLU(inplace=True),
+                nn.Linear(make_divisible(channel // reduction, 8), channel),
+                Hsigmoid()
+        )
+
+    def forward(self, x):
+        b, c, _, _ = x.size()
+        y = self.avg_pool(x).view(b, c)
+        y = self.fc(y).view(b, c, 1, 1)
+        return x * y
+
+
+
+class InvertedResidualV2(nn.Module):
+    def __init__(self, inp, hidden_dim, oup, kernel_size, stride, use_se, use_hs):
+        super().__init__()
+        assert stride in [1, 2]
+        self.identity = stride == 1 and inp == oup
+
+        if inp == hidden_dim:
+            self.conv = nn.Sequential(
+                nn.Conv2d(inp, inp, kernel_size, stride, (kernel_size - 1) // 2, groups=inp, bias=False),
+                nn.BatchNorm2d(inp),
+                Hswish() if use_hs else nn.ReLU(inplace=True),
+                SELayer(inp) if use_se else nn.Identity(),
+                nn.Conv2d(inp, oup, 1, 1, 0, bias=False),
+                nn.BatchNorm2d(oup),
+            )
+        else:
+            self.conv = nn.Sequential(
+                nn.Conv2d(inp, hidden_dim, 1, 1, 0, bias=False),
+                nn.BatchNorm2d(hidden_dim),
+                Hswish() if use_hs else nn.ReLU(inplace=True),
+                nn.Conv2d(hidden_dim, hidden_dim, kernel_size, stride, (kernel_size - 1) // 2, groups=hidden_dim, bias=False),
+                nn.BatchNorm2d(hidden_dim),
+                SELayer(hidden_dim) if use_se else nn.Identity(),
+                Hswish() if use_hs else nn.ReLU(inplace=True),
+                nn.Conv2d(hidden_dim, oup, 1, 1, 0, bias=False),
+                nn.BatchNorm2d(oup),
+            )
+
+    def forward(self, x):
+        if self.identity:
+            return x + self.conv(x)
+        else:
+            return self.conv(x)
+
+
+
+class InvertedResidualV1(nn.Module):
+    def __init__(self, inp, oup, stride, expand_ratio):
+        super().__init__()
+        assert stride in [1, 2]
+        self.identity = stride == 1 and inp == oup
+
+        if expand_ratio == 1:
+            self.conv = Conv(inp, oup, kernel_size=3, stride=stride, padding=1, act="relu6", depthwise=True)
+        else:
+            self.conv = nn.Sequential(
+                Conv(inp, round(inp * expand_ratio), kernel_size=1, act="relu6"),
+                Conv(round(inp * expand_ratio), oup, kernel_size=3, stride=stride, padding=1, act="relu6", depthwise=True)
+            )
+
+    def forward(self, x):
+        if self.identity:
+            return x + self.conv(x)
+        else:
+            return self.conv(x)
 
 
 

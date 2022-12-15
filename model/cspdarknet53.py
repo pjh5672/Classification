@@ -1,13 +1,16 @@
 import torch
 from torch import nn
-from element import Conv, CSPStage, weight_init_kaiming_uniform
+from element import Conv, CSPStage, make_divisible, weight_init_kaiming_uniform
 
 
 
 class CSPDarkNet53(nn.Module):
     def __init__(self, num_classes, width_multiple=1.0, depth_multiple=1.0):
         super().__init__()
-        width_cfg = [int(w*width_multiple) for w in (64, 128, 256, 512, 1024)]
+        
+        width_cfg = []
+        for c in (64, 128, 256, 512, 1024):
+            width_cfg.append(make_divisible(c*width_multiple, 4 if width_multiple == 0.1 else 8))
         depth_cfg = [int(d*depth_multiple) for d in (1, 3, 9, 9, 6)]
 
         self.layer1 = nn.Sequential(
