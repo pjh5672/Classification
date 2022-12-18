@@ -22,8 +22,8 @@ This is a repository for PyTorch training implementation of general purposed cla
 | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: |
 | Darknet19<br><sup>(<u>Doc:page_with_curl:</u>)</br> | ImageNet | train2012 | val2012 | 224 | 72.90 | *not reported* | 7.29 |
 | Darknet19-448<br><sup>(<u>Doc:page_with_curl:</u>)</br> | ImageNet | train2012 | val2012 | 448 | 76.40 | *not reported* | 22.33 |
-| Darknet19<br><sup>(<u>Our:star:</u>)</br> | ImageNet | train2012 | val2012 | 224 | 72.79 | 20.84 | 5.62 |
-| Darknet19-448<br><sup>(<u>Our:star:</u>)</br> | ImageNet | train2012 | val2012 | 448 | - | 20.84 | 22.47 |
+| Darknet19<br><sup>(<u>Our:star:</u>)</br> | ImageNet | train2012 | val2012 | 224 | 72.52 | 20.84 | 5.62 |
+| Darknet19-448<br><sup>(<u>Our:star:</u>)</br> | ImageNet | train2012 | val2012 | 448 | 74.67 | 20.84 | 22.47 |
 
 
 ![result](./asset/data.jpg)
