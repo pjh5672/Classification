@@ -31,7 +31,7 @@ torch.manual_seed(SEED)
 
 from dataloader import build_dataset
 from model import build_model
-from utils import set_lr, build_basic_logger, setup_worker_logging, setup_primary_logging
+from utils import set_lr, build_basic_logger, setup_worker_logging, setup_primary_logging, one_cycle
 from val import validate
 
 
@@ -89,6 +89,7 @@ def parse_args(make_dirs=True):
     parser.add_argument("--img_size", type=int, default=224, help="Model input size")
     parser.add_argument("--batch_size", type=int, default=256, help="Batch size")
     parser.add_argument("--num_epochs", type=int, default=150, help="Number of training epochs")
+    parser.add_argument("--lr_decay", type=int, default=1e-3, help="Epoch to learning rate decay")
     parser.add_argument("--warmup", type=int, default=5, help="Epochs for warming up training")
     parser.add_argument("--base_lr", type=float, default=0.1, help="Base learning rate")
     parser.add_argument("--momentum", type=float, default=0.9, help="Momentum")
@@ -145,7 +146,7 @@ def main_work(rank, world_size, args, logger):
     macs, params = profile(deepcopy(model), inputs=(torch.randn(1, 3, args.img_size, args.img_size),), verbose=False)
     criterion = nn.CrossEntropyLoss(label_smoothing=args.label_smoothing)
     optimizer = optim.SGD(model.parameters(), args.base_lr, momentum=args.momentum, weight_decay=args.weight_decay)
-    scheduler = optim.lr_scheduler.StepLR(optimizer, step_size=30, gamma=0.1)
+    scheduler = optim.lr_scheduler.LambdaLR(optimizer=optimizer, lr_lambda=one_cycle(1, args.lr_decay, args.num_epochs))
     scaler = amp.GradScaler(enabled=not args.no_amp)
 
     model = model.cuda(args.rank)
