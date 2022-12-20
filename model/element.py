@@ -27,7 +27,7 @@ def weight_init_kaiming_uniform(module):
 
 
 class Hsigmoid(nn.Module):
-    def __init__(self, inplace=True):
+    def __init__(self, inplace=False):
         super().__init__()
         self.relu = nn.ReLU6(inplace=inplace)
 
@@ -37,7 +37,7 @@ class Hsigmoid(nn.Module):
 
 
 class Hswish(nn.Module):
-    def __init__(self, inplace=True):
+    def __init__(self, inplace=False):
         super().__init__()
         self.sigmoid = Hsigmoid(inplace=inplace)
 
@@ -62,11 +62,11 @@ class Conv(nn.Module):
         if act == "identity":
             act_func = nn.Identity()
         elif act == "relu":
-            act_func = nn.ReLU(inplace=True)
+            act_func = nn.ReLU()
         elif act == "relu6":
-            act_func = nn.ReLU6(inplace=True)
+            act_func = nn.ReLU6()
         elif act == "leaky_relu":
-            act_func = nn.LeakyReLU(0.1, inplace=True)
+            act_func = nn.LeakyReLU(0.1)
         elif act == "mish":
             act_func = Mish()
         elif act == "hsigmoid":
