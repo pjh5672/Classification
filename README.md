@@ -26,6 +26,12 @@ This is a repository for PyTorch training implementation of general purposed cla
 | Darknet19-448<br><sup>(<u>Our:star:</u>)</br> | ImageNet | train2012 | val2012 | 448 | 75.64 | 20.84 | 22.47 |
 
 
+ - **Pretrained Model Weights Download**
+
+	- [DarkNet19-224](https://drive.google.com/file/d/1UlCDGDjGKl_Cx8HehaIgsnB09j-YccuR/view?usp=share_link)
+	- [DarkNet19-448](https://drive.google.com/file/d/1VA4Lc5MUFzL_WQ2-HVQMkH6sLF44fWsj/view?usp=share_link)
+
+
 ![result](./asset/data.jpg)
 
 
