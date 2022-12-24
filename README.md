@@ -13,15 +13,20 @@
 
 ## [Description]
 
-This is a repository for PyTorch training implementation of general purposed classifier. With the training code, various feature extractor, also known as backbone architectures can be created.  
+This is a repository for PyTorch training implementation of general purposed classifier. With the training code, various feature extractor backbones such as resnets, darknet19, darknet53, mobilenets can be created.  
 
 
  - **Performance Table**
 
 | Model | Dataset | Train | Valid | Size<br><sup>(pixel) | Accuracy<br><sup>(Top-1) | Params<br><sup>(M) | FLOPs<br><sup>(B) |
 | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: |
-| Darknet19-224<br><sup>(<u>Our:star:</u>)</br> | ImageNet | train2012 | val2012 | 224 | 72.52 | 20.84 | 5.62 |
-| Darknet19-448<br><sup>(<u>Our:star:</u>)</br> | ImageNet | train2012 | val2012 | 448 | 75.64 | 20.84 | 22.47 |
+| Darknet19<br><sup>(<u>Our:star:</u>)</br> | ImageNet | train2012 | val2012 | 224 | 72.52 | 20.84 | 5.62 |
+| Darknet53<br><sup>(<u>Our:star:</u>)</br> | ImageNet | train2012 | val2012 | 224 | - | 41.61 | 14.29 |
+| Darknet53-tiny<br><sup>(<u>Our:star:</u>)</br> | ImageNet | train2012 | val2012 | 224 | - | 2.09 | 0.64 |
+| Mobilenetv1<br><sup>(<u>Our:star:</u>)</br> | ImageNet | train2012 | val2012 | 224 | - | 4.23 | 1.18 |
+| Mobilenetv2<br><sup>(<u>Our:star:</u>)</br> | ImageNet | train2012 | val2012 | 224 | - | 3.50 | 0.66 |
+| Mobilenetv3-small<br><sup>(<u>Our:star:</u>)</br> | ImageNet | train2012 | val2012 | 224 | - | 2.54 | 0.12 |
+| Mobilenetv3-large<br><sup>(<u>Our:star:</u>)</br> | ImageNet | train2012 | val2012 | 224 | - | 5.48 | 0.47 |
 
 
  - **Pretrained Model Weights Download**
@@ -39,11 +44,11 @@ This is a repository for PyTorch training implementation of general purposed cla
 
 #### Model Training 
 
- - You can train various classifier architectures (ResNet18, ResNet34, ResNet50, ResNet101, DarkNet19, DarkNet53, and CSP-DarkNet53). In addition, you can finetune classifier adding "--pretrained" in training command after putting the weight files into "./weights" directory with {model name}.  
+ - You can train various classifier architectures (ResNet18, ResNet34, ResNet50, ResNet101, DarkNet19, DarkNet53, and CSP-DarkNet53, Mobilenetv1-v3). In addition, you can finetune classifier adding "--pretrained" in training command after putting the weight files into "./weights" directory with {model name}.  
 
 
 ```python
-python train.py --exp my_test --data imagenet.yaml --model resnet18 --pretrained (optional)
+python train.py --exp my_test --data imagenet.yaml --model resnet18
                                                    --model resnet34
                                                    --model resnet50
                                                    --model resnet101
@@ -51,6 +56,9 @@ python train.py --exp my_test --data imagenet.yaml --model resnet18 --pretrained
                                                    --model darknet53
                                                    --model darknet53_tiny
                                                    --model cspdarknet53 --width_multiple 1.0 --depth_multiple 1.0
+                                                   --model mobilenetv1 --width_multiple 1.0
+                                                   --model mobilenetv2 --width_multiple 1.0
+                                                   --model mobilenetv3 --mode {large, small} --width_multiple 1.0
 ```
 
 
