@@ -20,14 +20,14 @@ This is a repository for PyTorch training implementation of general purposed cla
 
 | Model | Dataset | Train | Valid | Size<br><sup>(pixel) | Accuracy<br><sup>(Top-1) | Params<br><sup>(M) | FLOPs<br><sup>(B) |
 | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: |
-| Darknet19 | ImageNet | train2012 | val2012 | 224 | 72.52 | 20.84 | 5.62 |
-| Darknet53 | ImageNet | train2012 | val2012 | 224 | - | 41.61 | 14.29 |
-| Darknet53-tiny | ImageNet | train2012 | val2012 | 224 | - | 2.09 | 0.64 |
-| CSPDarknet53 | ImageNet | train2012 | val2012 | 224 | - | 21.74 | 6.72 |
-| Mobilenetv1 | ImageNet | train2012 | val2012 | 224 | - | 4.23 | 1.18 |
-| Mobilenetv2 | ImageNet | train2012 | val2012 | 224 | - | 3.50 | 0.66 |
-| Mobilenetv3-small | ImageNet | train2012 | val2012 | 224 | - | 2.54 | 0.12 |
-| Mobilenetv3-large | ImageNet | train2012 | val2012 | 224 | - | 5.48 | 0.47 |
+| Darknet19 | ImageNet | train2012 | val2012 | 256 | 72.52 | 20.84 | 5.62 |
+| Darknet53 | ImageNet | train2012 | val2012 | 256 | - | 41.61 | 14.29 |
+| Darknet53-tiny | ImageNet | train2012 | val2012 | 256 | - | 2.09 | 0.64 |
+| CSPDarknet53 | ImageNet | train2012 | val2012 | 256 | - | 21.74 | 6.72 |
+| Mobilenetv1 | ImageNet | train2012 | val2012 | 256 | - | 4.23 | 1.18 |
+| Mobilenetv2 | ImageNet | train2012 | val2012 | 256 | - | 3.50 | 0.66 |
+| Mobilenetv3-small | ImageNet | train2012 | val2012 | 256 | - | 2.54 | 0.12 |
+| Mobilenetv3-large | ImageNet | train2012 | val2012 | 256 | - | 5.48 | 0.47 |
 
 
  - **Pretrained Model Weights Download**
