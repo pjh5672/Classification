@@ -26,7 +26,7 @@ def build_model(arch_name, num_classes=1000, width_multiple=1.0, depth_multiple=
         model = build_darknet53(num_classes=num_classes)
     elif arch_name == "darknet53-tiny":
         model = build_darknet53_tiny(num_classes=num_classes)
-    elif arch_name == "csp-darknet53":
+    elif arch_name == "cspdarknet53":
         model = build_CSPdarknet53(num_classes=num_classes, width_multiple=width_multiple, depth_multiple=depth_multiple)
     elif arch_name == "mobilenetv1":
         model = build_mobilenetv1(num_classes=num_classes, width_multiple=width_multiple)
