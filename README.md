@@ -20,20 +20,26 @@ This is a repository for PyTorch training implementation of general purposed cla
 
 | Model | Dataset | Train | Valid | Size<br><sup>(pixel) | Accuracy<br><sup>(Top-1) | Params<br><sup>(M) | FLOPs<br><sup>(B) |
 | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: |
-| Darknet19 | ImageNet | train2012 | val2012 | 256 | 72.52 | 20.84 | 5.62 |
-| Darknet53 | ImageNet | train2012 | val2012 | 256 | - | 41.61 | 14.29 |
-| Darknet53-tiny | ImageNet | train2012 | val2012 | 256 | - | 2.09 | 0.64 |
-| CSPDarknet53 | ImageNet | train2012 | val2012 | 256 | - | 21.74 | 6.72 |
-| Mobilenetv1 | ImageNet | train2012 | val2012 | 256 | - | 4.23 | 1.18 |
-| Mobilenetv2 | ImageNet | train2012 | val2012 | 256 | - | 3.50 | 0.66 |
-| Mobilenetv3-small | ImageNet | train2012 | val2012 | 256 | - | 2.54 | 0.12 |
-| Mobilenetv3-large | ImageNet | train2012 | val2012 | 256 | - | 5.48 | 0.47 |
+| Darknet19 | ImageNet | train2012 | val2012 | 256 | 74.08 | 20.84 | 7.34 |
+| Darknet53 | ImageNet | train2012 | val2012 | 256 | 78.21 | 41.61 | 18.67 |
+| Darknet53-tiny | ImageNet | train2012 | val2012 | 256 | 52.01 | 2.09 | 0.83 |
+| CSPDarknet53 | ImageNet | train2012 | val2012 | 256 | 76.82 | 21.74 | 8.77 |
+| Mobilenet-v1 | ImageNet | train2012 | val2012 | 256 | - | 4.23 | 1.18 |
+| Mobilenet-v2 | ImageNet | train2012 | val2012 | 256 | - | 3.50 | 0.66 |
+| Mobilenet-v3-small | ImageNet | train2012 | val2012 | 256 | - | 2.54 | 0.12 |
+| Mobilenet-v3-large | ImageNet | train2012 | val2012 | 256 | - | 5.48 | 0.47 |
 
 
  - **Pretrained Model Weights Download**
 
-	- [DarkNet19-224](https://drive.google.com/file/d/1UlCDGDjGKl_Cx8HehaIgsnB09j-YccuR/view?usp=share_link)
-	- [DarkNet19-448](https://drive.google.com/file/d/1VA4Lc5MUFzL_WQ2-HVQMkH6sLF44fWsj/view?usp=share_link)
+    - [Darknet19_256](https://drive.google.com/file/d/18mBYZ6-X0HqzPNHSyzrqiynaZer1TRK2/view?usp=share_link)
+    - [Darknet53_256](https://drive.google.com/file/d/1Mz0ARtsGSOYeHoPZYeH22shI3-ZbJm1q/view?usp=share_link)
+    - [Darknet53-tiny_256](https://drive.google.com/file/d/1JeZ7eUuOo9yTxyrLDD6A6IgFVYa0I34o/view?usp=share_link)
+    - [CSP-Darknet53_256](https://drive.google.com/file/d/1fOHGCnX-kCpBIPH5yWs0Qq17UbMkY68A/view?usp=share_link)
+
+    - [DarkNet19_224](https://drive.google.com/file/d/1UlCDGDjGKl_Cx8HehaIgsnB09j-YccuR/view?usp=share_link)
+	- [DarkNet19_448](https://drive.google.com/file/d/1VA4Lc5MUFzL_WQ2-HVQMkH6sLF44fWsj/view?usp=share_link)
+
 
 
 ![result](./asset/data.jpg)
@@ -55,11 +61,11 @@ python train.py --exp my_test --data imagenet.yaml --model resnet18
                                                    --model resnet101
                                                    --model darknet19
                                                    --model darknet53
-                                                   --model darknet53_tiny
-                                                   --model cspdarknet53 --width_multiple 1.0 --depth_multiple 1.0
-                                                   --model mobilenetv1 --width_multiple 1.0
-                                                   --model mobilenetv2 --width_multiple 1.0
-                                                   --model mobilenetv3 --mode {large, small} --width_multiple 1.0
+                                                   --model darknet53-tiny
+                                                   --model csp-darknet53 --width_multiple 1.0 --depth_multiple 1.0
+                                                   --model mobilenet-v1 --width_multiple 1.0
+                                                   --model mobilenet-v2 --width_multiple 1.0
+                                                   --model mobilenet-v3 --mode {large, small} --width_multiple 1.0
 ```
 
 
