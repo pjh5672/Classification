@@ -143,12 +143,13 @@ def main_work(rank, world_size, args, logger):
     args.nw = max(round(args.warmup * len(train_loader)), 100)
 
     model = build_model(arch_name=args.model, num_classes=len(class_list), width_multiple=args.width_multiple, 
-                        depth_multiple=args.depth_multiple, mode=args.mobile_v3, pretrained=args.pretrained).cuda(args.rank)
+                        depth_multiple=args.depth_multiple, mode=args.mobile_v3, pretrained=args.pretrained)
     macs, params = profile(deepcopy(model), inputs=(torch.randn(1, 3, args.img_size, args.img_size),), verbose=False)
     criterion = nn.CrossEntropyLoss(label_smoothing=args.label_smoothing)
     optimizer = optim.SGD(model.parameters(), args.base_lr, momentum=args.momentum, weight_decay=args.weight_decay)
     scheduler = optim.lr_scheduler.LambdaLR(optimizer=optimizer, lr_lambda=one_cycle(1, args.lr_decay, args.num_epochs))
     scaler = amp.GradScaler(enabled=not args.no_amp)
+    model.cuda(args.rank)
     
     #################################### Load Model #####################################
     if args.resume:
