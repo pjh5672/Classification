@@ -23,7 +23,7 @@ This is a repository for PyTorch training implementation of general purposed cla
 | Darknet19 | ImageNet | train2012 | val2012 | 256 | 74.08 | 20.84 | 7.34 |
 | Darknet53 | ImageNet | train2012 | val2012 | 256 | 78.21 | 41.61 | 18.67 |
 | Darknet53-tiny | ImageNet | train2012 | val2012 | 256 | 52.01 | 2.09 | 0.83 |
-| CSPDarknet53 | ImageNet | train2012 | val2012 | 256 | 76.82 | 21.74 | 8.77 |
+| CSP-Darknet53 | ImageNet | train2012 | val2012 | 256 | 76.82 | 21.74 | 8.77 |
 | Mobilenet-v1 | ImageNet | train2012 | val2012 | 256 | - | 4.23 | 1.18 |
 | Mobilenet-v2 | ImageNet | train2012 | val2012 | 256 | - | 3.50 | 0.66 |
 | Mobilenet-v3-small | ImageNet | train2012 | val2012 | 256 | - | 2.54 | 0.12 |
