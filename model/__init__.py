@@ -26,13 +26,13 @@ def build_model(arch_name, num_classes=1000, width_multiple=1.0, depth_multiple=
         model = build_darknet53(num_classes=num_classes)
     elif arch_name == "darknet53-tiny":
         model = build_darknet53_tiny(num_classes=num_classes)
-    elif arch_name == "cspdarknet53":
+    elif arch_name == "csp-darknet53":
         model = build_CSPdarknet53(num_classes=num_classes, width_multiple=width_multiple, depth_multiple=depth_multiple)
-    elif arch_name == "mobilenetv1":
+    elif arch_name == "mobilenet-v1":
         model = build_mobilenetv1(num_classes=num_classes, width_multiple=width_multiple)
-    elif arch_name == "mobilenetv2":
+    elif arch_name == "mobilenet-v2":
         model = build_mobilenetv2(num_classes=num_classes, width_multiple=width_multiple)
-    elif arch_name == "mobilenetv3":
+    elif arch_name == "mobilenet-v3":
         model = build_mobilenetv3(num_classes=num_classes, mode=mode, width_multiple=width_multiple)
     else:
         raise RuntimeError("Only support model in [resnet(18-101), darknet(19, 53, 53-tiny), csp-darknet53, mobilenet(v1-v3)]")

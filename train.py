@@ -86,22 +86,22 @@ def parse_args(make_dirs=True):
     parser.add_argument("--exp", type=str, required=True, help="Name to log training")
     parser.add_argument("--data", type=str, default="imagenet.yaml", help="Path to data.yaml")
     parser.add_argument("--model", type=str, default="resnet18", help="Model architecture")
-    parser.add_argument("--mobilev3", type=str, default="large", help="Mobilenetv3 architecture mode")
-    parser.add_argument("--img_size", type=int, default=256, help="Model input size")
-    parser.add_argument("--batch_size", type=int, default=256, help="Batch size")
-    parser.add_argument("--num_epochs", type=int, default=150, help="Number of training epochs")
-    parser.add_argument("--lr_decay", type=int, default=1e-4, help="Epoch to learning rate decay")
+    parser.add_argument("--mobile-v3", type=str, default="large", help="Mobilenetv3 architecture mode")
+    parser.add_argument("--img-size", type=int, default=256, help="Model input size")
+    parser.add_argument("--batch-size", type=int, default=256, help="Batch size")
+    parser.add_argument("--num-epochs", type=int, default=150, help="Number of training epochs")
+    parser.add_argument("--lr-decay", type=int, default=1e-4, help="Epoch to learning rate decay")
     parser.add_argument("--warmup", type=int, default=5, help="Epochs for warming up training")
-    parser.add_argument("--base_lr", type=float, default=0.1, help="Base learning rate")
+    parser.add_argument("--base-lr", type=float, default=0.1, help="Base learning rate")
     parser.add_argument("--momentum", type=float, default=0.9, help="Momentum")
-    parser.add_argument("--weight_decay", type=float, default=1e-4, help="Weight decay")
-    parser.add_argument("--label_smoothing", type=float, default=0.1, help="Label smoothing")
+    parser.add_argument("--weight-decay", type=float, default=1e-4, help="Weight decay")
+    parser.add_argument("--label-smoothing", type=float, default=0.1, help="Label smoothing")
     parser.add_argument("--workers", type=int, default=8, help="Number of workers used in dataloader")
-    parser.add_argument("--world_size", type=int, default=1, help="Number of available GPU devices")
+    parser.add_argument("--world-size", type=int, default=1, help="Number of available GPU devices")
     parser.add_argument("--rank", type=int, default=0, help="Process id for computation")
-    parser.add_argument("--no_amp", action="store_true", help="Use of FP32 training (default: AMP training)")
-    parser.add_argument("--width_multiple", type=float, default=1.0, help="CSP-Layer channel multiple")
-    parser.add_argument("--depth_multiple", type=float, default=1.0, help="CSP-Model depth multiple")
+    parser.add_argument("--no-amp", action="store_true", help="Use of FP32 training (default: AMP training)")
+    parser.add_argument("--width-multiple", type=float, default=1.0, help="CSP-Layer channel multiple")
+    parser.add_argument("--depth-multiple", type=float, default=1.0, help="CSP-Model depth multiple")
     parser.add_argument("--pretrained", action="store_true", help="Training with pretrained weights")
     parser.add_argument("--resume", action="store_true", help="Name to resume path")
 
@@ -143,7 +143,7 @@ def main_work(rank, world_size, args, logger):
     args.nw = max(round(args.warmup * len(train_loader)), 100)
 
     model = build_model(arch_name=args.model, num_classes=len(class_list), 
-                        width_multiple=args.width_multiple, depth_multiple=args.depth_multiple, mode=args.mobilev3, pretrained=args.pretrained)
+                        width_multiple=args.width_multiple, depth_multiple=args.depth_multiple, mode=args.mobile_v3, pretrained=args.pretrained)
     macs, params = profile(deepcopy(model), inputs=(torch.randn(1, 3, args.img_size, args.img_size),), verbose=False)
     criterion = nn.CrossEntropyLoss(label_smoothing=args.label_smoothing)
     optimizer = optim.SGD(model.parameters(), args.base_lr, momentum=args.momentum, weight_decay=args.weight_decay)
@@ -195,7 +195,7 @@ def main_work(rank, world_size, args, logger):
             save_opt = {"running_epoch": epoch,
                         "class_list": class_list,
                         "model": args.model,
-                        "mobilev3": args.mobilev3, 
+                        "mobile_v3": args.mobile_v3, 
                         "width_multiple": args.width_multiple,
                         "depth_multiple": args.depth_multiple,
                         "model_state": deepcopy(model.module).state_dict() if hasattr(model, "module") else deepcopy(model).state_dict(),

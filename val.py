@@ -61,9 +61,9 @@ def parse_args():
     parser = argparse.ArgumentParser()
     parser.add_argument("--exp", type=str, required=True, help="Name to log training")
     parser.add_argument("--data", type=str, default="imagenet.yaml", help="Path to data.yaml")
-    parser.add_argument("--img_size", type=int, default=224, help="Model input size")
-    parser.add_argument("--batch_size", type=int, default=16, help="Batch size")
-    parser.add_argument("--ckpt_name", type=str, default="best.pt", help="Path to trained model")
+    parser.add_argument("--img-size", type=int, default=224, help="Model input size")
+    parser.add_argument("--batch-size", type=int, default=16, help="Batch size")
+    parser.add_argument("--ckpt-name", type=str, default="best.pt", help="Path to trained model")
     parser.add_argument("--rank", type=int, default=0, help="Process id for computation")
     parser.add_argument("--workers", type=int, default=8, help="Number of workers used in dataloader")
 
@@ -83,7 +83,7 @@ def main():
     val_loader = DataLoader(dataset=dataset["val"], batch_size=args.batch_size, shuffle=False, pin_memory=True, num_workers=args.workers)
     ckpt = torch.load(args.ckpt_path, map_location = {"cpu":"cuda:%d" %args.rank})
     
-    mode = ckpt["mobilev3"] if ckpt["model"] == "mobilenetv3" else "large"
+    mode = ckpt["mobile_v3"] if ckpt["model"] == "mobilenet-v3" else "large"
     model = build_model(arch_name=ckpt["model"], num_classes=len(ckpt["class_list"]), 
                         width_multiple=ckpt["width_multiple"], depth_multiple=ckpt["depth_multiple"], mode=mode)
     model.load_state_dict(ckpt["model_state"], strict=True)
