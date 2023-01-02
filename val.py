@@ -87,7 +87,7 @@ def main():
     model = build_model(arch_name=ckpt["model"], num_classes=len(ckpt["class_list"]), 
                         width_multiple=ckpt["width_multiple"], depth_multiple=ckpt["depth_multiple"], mode=mode)
     model.load_state_dict(ckpt["model_state"], strict=True)
-    model = model.cuda(args.rank)
+    model.cuda(args.rank)
 
     val_loader = tqdm(val_loader, desc="[VAL]", ncols=115, leave=False)
     _, eval_text = validate(args=args, dataloader=val_loader, model=model)
