@@ -74,7 +74,7 @@ python train.py --exp my_test --data imagenet.yaml --model resnet18
  - It computes Top-1 accuracy. Top-1 accuracy is the conventional accuracy, the model answer (the one with highest probability) must be exactly the expected answer. 
 
 ```python
-python val.py --exp my_test --data voc.yaml --ckpt_name best.pt
+python val.py --exp my_test --data voc.yaml --ckpt-name best.pt
 ```
 
 
