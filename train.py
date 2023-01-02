@@ -31,7 +31,7 @@ torch.manual_seed(SEED)
 
 from dataloader import build_dataset
 from model import build_model
-from utils import set_lr, build_basic_logger, setup_worker_logging, setup_primary_logging, one_cycle
+from utils import set_lr, build_basic_logger, setup_worker_logging, setup_primary_logging, one_cycle, resume_state, de_parallel
 from val import validate
 
 
@@ -142,42 +142,29 @@ def main_work(rank, world_size, args, logger):
     val_loader = DataLoader(dataset=dataset["val"], batch_size=args.batch_size, shuffle=False, pin_memory=True, num_workers=args.workers)
     args.nw = max(round(args.warmup * len(train_loader)), 100)
 
-    model = build_model(arch_name=args.model, num_classes=len(class_list), 
-                        width_multiple=args.width_multiple, depth_multiple=args.depth_multiple, mode=args.mobile_v3, pretrained=args.pretrained)
+    model = build_model(arch_name=args.model, num_classes=len(class_list), width_multiple=args.width_multiple, 
+                        depth_multiple=args.depth_multiple, mode=args.mobile_v3, pretrained=args.pretrained).cuda(args.rank)
     macs, params = profile(deepcopy(model), inputs=(torch.randn(1, 3, args.img_size, args.img_size),), verbose=False)
     criterion = nn.CrossEntropyLoss(label_smoothing=args.label_smoothing)
     optimizer = optim.SGD(model.parameters(), args.base_lr, momentum=args.momentum, weight_decay=args.weight_decay)
     scheduler = optim.lr_scheduler.LambdaLR(optimizer=optimizer, lr_lambda=one_cycle(1, args.lr_decay, args.num_epochs))
     scaler = amp.GradScaler(enabled=not args.no_amp)
-
-    model = model.cuda(args.rank)
-    if OS_SYSTEM == "Linux":
-        model = DDP(model, device_ids=[args.rank])
-        dist.barrier()
+    
     #################################### Load Model #####################################
-
     if args.resume:
         assert args.load_path.is_file(), "Not exist trained weights in the directory path !"
-        ckpt = torch.load(args.load_path, map_location="cpu")
-        start_epoch = ckpt["running_epoch"]
-        if hasattr(model, "module"):
-            model.module.load_state_dict(ckpt["model_state"], strict=True)
-        else:
-            model.load_state_dict(ckpt["model_state"], strict=True)
-        optimizer.load_state_dict(ckpt["optimizer_state"])
-        for state in optimizer.state.values():
-            for k, v in state.items():
-                if isinstance(v, torch.Tensor):
-                    state[k] = v.cuda(args.rank)
-        scheduler.load_state_dict(ckpt["scheduler_state"])
-        scaler.load_state_dict(ckpt["scaler_state_dict"])
+        start_epoch = resume_state(args.load_path, args.rank, model, optimizer, scheduler, scaler)
     else:
         start_epoch = 1
         if args.rank == 0:
             logging.warning(f"[Arguments]\n{pprint.pformat(vars(args))}\n")
-            logging.warning(f"Architecture Info - Params(M): {params/1e+6:.2f}, FLOPS(B): {2*macs/1E+9:.2f}")
-    
+            logging.warning(f"Architecture Info - Params(M): {params/1e+6:.2f}, FLOPs(B): {2*macs/1E+9:.2f}")
+
     #################################### Train Model ####################################
+    if OS_SYSTEM == "Linux":
+        model = DDP(model, device_ids=[args.rank])
+        dist.barrier()
+
     if args.rank == 0:
         progress_bar = trange(start_epoch, args.num_epochs+1, total=args.num_epochs, initial=start_epoch, ncols=115)
     else:
@@ -198,7 +185,7 @@ def main_work(rank, world_size, args, logger):
                         "mobile_v3": args.mobile_v3, 
                         "width_multiple": args.width_multiple,
                         "depth_multiple": args.depth_multiple,
-                        "model_state": deepcopy(model.module).state_dict() if hasattr(model, "module") else deepcopy(model).state_dict(),
+                        "model_state": deepcopy(de_parallel(model)).state_dict(),
                         "optimizer_state": optimizer.state_dict(),
                         "scheduler_state": scheduler.state_dict(),
                         "scaler_state_dict": scaler.state_dict()}

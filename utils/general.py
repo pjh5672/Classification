@@ -1,6 +1,17 @@
 import os
 import math
 import cv2
+from torch import nn
+
+
+def is_parallel(model):
+    # Returns True if model is of type DP or DDP
+    return type(model) in (nn.parallel.DataParallel, nn.parallel.DistributedDataParallel)
+
+
+def de_parallel(model):
+    # De-parallelize a model: returns single-GPU model if model is of type DP or DDP
+    return model.module if is_parallel(model) else model
 
 
 def one_cycle(y1=0.0, y2=1.0, steps=100):
