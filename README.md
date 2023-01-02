@@ -36,9 +36,8 @@ This is a repository for PyTorch training implementation of general purposed cla
     - [Darknet53_256](https://drive.google.com/file/d/1Mz0ARtsGSOYeHoPZYeH22shI3-ZbJm1q/view?usp=share_link)
     - [Darknet53-tiny_256](https://drive.google.com/file/d/1JeZ7eUuOo9yTxyrLDD6A6IgFVYa0I34o/view?usp=share_link)
     - [CSP-Darknet53_256](https://drive.google.com/file/d/1fOHGCnX-kCpBIPH5yWs0Qq17UbMkY68A/view?usp=share_link)
-
     - [DarkNet19_224](https://drive.google.com/file/d/1UlCDGDjGKl_Cx8HehaIgsnB09j-YccuR/view?usp=share_link)
-	- [DarkNet19_448](https://drive.google.com/file/d/1VA4Lc5MUFzL_WQ2-HVQMkH6sLF44fWsj/view?usp=share_link)
+    - [DarkNet19_448](https://drive.google.com/file/d/1VA4Lc5MUFzL_WQ2-HVQMkH6sLF44fWsj/view?usp=share_link)
 
 
 
