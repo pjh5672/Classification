@@ -87,7 +87,7 @@ def parse_args(make_dirs=True):
     parser.add_argument("--data", type=str, default="imagenet.yaml", help="Path to data.yaml")
     parser.add_argument("--model", type=str, default="resnet18", help="Model architecture")
     parser.add_argument("--mobile-v3", type=str, default="large", help="Mobilenetv3 architecture mode")
-    parser.add_argument("--img-size", type=int, default=256, help="Model input size")
+    parser.add_argument("--img-size", type=int, default=224, help="Model input size")
     parser.add_argument("--batch-size", type=int, default=256, help="Batch size")
     parser.add_argument("--num-epochs", type=int, default=150, help="Number of training epochs")
     parser.add_argument("--lr-decay", type=int, default=1e-4, help="Epoch to learning rate decay")
