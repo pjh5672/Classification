@@ -128,6 +128,7 @@ def main_work(rank, world_size, args, logger):
         setup_worker_logging(rank, logger)
     else:
         logging = logger
+
     ################################### Init Instance ###################################
     global epoch
 
@@ -176,6 +177,7 @@ def main_work(rank, world_size, args, logger):
     for epoch in progress_bar:
         if args.rank == 0:
             train_loader = tqdm(train_loader, desc=f"[TRAIN:{epoch:03d}/{args.num_epochs:03d}]", ncols=115, leave=False)
+
         train_sampler.set_epoch(epoch)
         train_loss_str = train(args=args, dataloader=train_loader, model=model, criterion=criterion, optimizer=optimizer, scaler=scaler)
 
@@ -199,6 +201,7 @@ def main_work(rank, world_size, args, logger):
             if top1_acc > best_score:
                 best_epoch, best_score, best_perf_str = epoch, top1_acc, eval_text
                 torch.save(save_opt, args.weight_dir / "best.pt")
+                
         scheduler.step()
 
     if args.rank == 0:
