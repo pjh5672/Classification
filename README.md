@@ -13,36 +13,33 @@
 
 ## [Description]
 
-This is a repository for PyTorch training implementation of general purposed classifier. With the training code, various feature extractor backbones such as resnets, darknet19, darknet53, mobilenets can be created.  
+This is a repository for PyTorch training implementation of general purposed classifier. With the training code, various feature extractor backbones such as Resnet, Darknet, CSP-Darknet53, Mobilenet series can be created.  
 
 
  - **Performance Table**
 
 | Model | Dataset | Train | Valid | Size<br><sup>(pixel) | Accuracy<br><sup>(Top-1) | Params<br><sup>(M) | FLOPs<br><sup>(B) |
 | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: |
-| Darknet19 | ImageNet | train2012 | val2012 | 256 | 74.08 | 20.84 | 7.34 |
-| Darknet53 | ImageNet | train2012 | val2012 | 256 | 78.21 | 41.61 | 18.67 |
-| Darknet53-tiny | ImageNet | train2012 | val2012 | 256 | 52.01 | 2.09 | 0.83 |
-| CSP-Darknet53 | ImageNet | train2012 | val2012 | 256 | 76.82 | 21.74 | 8.77 |
-| Mobilenet-v1 | ImageNet | train2012 | val2012 | 256 | - | 4.23 | 1.18 |
-| Mobilenet-v2 | ImageNet | train2012 | val2012 | 256 | - | 3.50 | 0.66 |
-| Mobilenet-v3-small | ImageNet | train2012 | val2012 | 256 | - | 2.54 | 0.12 |
-| Mobilenet-v3-large | ImageNet | train2012 | val2012 | 256 | - | 5.48 | 0.47 |
+| Darknet19 | ImageNet | train2012 | val2012 | 224 | 73.50 | 20.84 | 5.62 |
+| Darknet19 | ImageNet | train2012 | val2012 | 224 | 76.22 | 20.84 | 22.47 |
+| Darknet53 | ImageNet | train2012 | val2012 | 224 | 77.67 | 41.61 | 14.29 |
+| Darknet53 | ImageNet | train2012 | val2012 | 448 | - | - | - |
+| Darknet53-tiny | ImageNet | train2012 | val2012 | 224 | - | - | - |
+| CSP-Darknet53 | ImageNet | train2012 | val2012 | 224 | - | - | - |
+| Mobilenet-v1 | ImageNet | train2012 | val2012 | 224 | - | - | - |
+| Mobilenet-v2 | ImageNet | train2012 | val2012 | 224 | - | - | - |
+| Mobilenet-v3-small | ImageNet | train2012 | val2012 | 224 | - | - | - |
+| Mobilenet-v3-large | ImageNet | train2012 | val2012 | 224 | - | - | - |
 
 
  - **Pretrained Model Weights Download**
 
-    - [Darknet19_256](https://drive.google.com/file/d/18mBYZ6-X0HqzPNHSyzrqiynaZer1TRK2/view?usp=share_link)
-    - [Darknet53_256](https://drive.google.com/file/d/1Mz0ARtsGSOYeHoPZYeH22shI3-ZbJm1q/view?usp=share_link)
-    - [Darknet53-tiny_256](https://drive.google.com/file/d/1JeZ7eUuOo9yTxyrLDD6A6IgFVYa0I34o/view?usp=share_link)
-    - [CSP-Darknet53_256](https://drive.google.com/file/d/1fOHGCnX-kCpBIPH5yWs0Qq17UbMkY68A/view?usp=share_link)
-    - [DarkNet19_224](https://drive.google.com/file/d/1UlCDGDjGKl_Cx8HehaIgsnB09j-YccuR/view?usp=share_link)
-    - [DarkNet19_448](https://drive.google.com/file/d/1VA4Lc5MUFzL_WQ2-HVQMkH6sLF44fWsj/view?usp=share_link)
-
+    - [DarkNet19-224](https://drive.google.com/file/d/1qVZjStNyHkTjQQSsyHkg9XgfnyxtFQau/view?usp=share_link)
+    - [DarkNet19-448](https://drive.google.com/file/d/1qjOfb-KESJFZoJRlwZ_2FbT4-9PkgdjZ/view?usp=share_link)
+    - [Darknet53-224](https://drive.google.com/file/d/1rLGltJki7OujkehJZNgnhj1Bp3JficIE/view?usp=share_link)
 
 
 ![result](./asset/data.jpg)
-
 
 
 ## [Usage]
@@ -51,6 +48,8 @@ This is a repository for PyTorch training implementation of general purposed cla
 #### Model Training 
 
  - You can train various classifier architectures (ResNet18, ResNet34, ResNet50, ResNet101, DarkNet19, DarkNet53, and CSP-DarkNet53, Mobilenetv1-v3). In addition, you can finetune classifier adding "--pretrained" in training command after putting the weight files into "./weights" directory with {model name}.  
+ - In case of fine-tuning with 448px image, we finetune pretrained 224px model for 15~20 epochs without warming up learning rate. That is the comment like shown below.
+    `python3 train.py --exp darknet19-448 --model darknet19 --batch-size 128 --base-lr 0.001 --warmup 0 --img-size 448 --num-epochs 15 --pretrained`
 
 
 ```python
