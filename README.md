@@ -26,7 +26,7 @@ This is a repository for PyTorch training implementation of general purposed cla
 | Darknet53 | ImageNet | train2012 | val2012 | 448 | 79.77 | 41.61 | 57.17 |
 | Darknet53-tiny | ImageNet | train2012 | val2012 | 224 | 52.75 | 2.09 | 0.64 |
 | CSP-Darknet53 | ImageNet | train2012 | val2012 | 224 | - | - | - |
-| Mobilenet-v1 | ImageNet | train2012 | val2012 | 224 | - | - | - |
+| Mobilenet-v1 | ImageNet | train2012 | val2012 | 224 | 71.49 | 4.23 | 1.18 |
 | Mobilenet-v2 | ImageNet | train2012 | val2012 | 224 | - | - | - |
 | Mobilenet-v3-small | ImageNet | train2012 | val2012 | 224 | - | - | - |
 | Mobilenet-v3-large | ImageNet | train2012 | val2012 | 224 | - | - | - |
@@ -39,6 +39,7 @@ This is a repository for PyTorch training implementation of general purposed cla
     - [Darknet53-224](https://drive.google.com/file/d/1rLGltJki7OujkehJZNgnhj1Bp3JficIE/view?usp=share_link)
     - [Darknet53-448](https://drive.google.com/file/d/1pYc_UlnG2G4EnVwidR7T5XAu16KZj6YP/view?usp=share_link)
     - [Darknet53-tiny-224](https://drive.google.com/file/d/1fcSmzXvK7Zpr8OJnfN7RryysIibyhIsG/view?usp=share_link)
+    - [Mobilenet-v1-224](https://drive.google.com/file/d/1S7PWp5qpyVSc8awyYGCoomCmxAuQ1f3A/view?usp=share_link)
 
 
 ![result](./asset/data.jpg)
