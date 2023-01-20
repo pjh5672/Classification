@@ -15,15 +15,15 @@
 
 This is a repository for PyTorch training implementation of general purposed classifier. With the training code, various feature extractor backbones such as Resnet, Darknet, CSP-Darknet53, Mobilenet series can be created.  
 
+![result](./asset/data.jpg)
 
- - **Performance Table**
+
+ - **224 x 224 Model Performance Table**
 
 | Model | Dataset | Train | Valid | Size<br><sup>(pixel) | Accuracy<br><sup>(Top-1) | Params<br><sup>(M) | FLOPs<br><sup>(B) |
 | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: |
 | Darknet19 | ImageNet | train2012 | val2012 | 224 | 73.50 | 20.84 | 5.62 |
-| Darknet19 | ImageNet | train2012 | val2012 | 224 | 76.22 | 20.84 | 22.47 |
 | Darknet53 | ImageNet | train2012 | val2012 | 224 | 77.67 | 41.61 | 14.29 |
-| Darknet53 | ImageNet | train2012 | val2012 | 448 | 79.77 | 41.61 | 57.17 |
 | Darknet53-tiny | ImageNet | train2012 | val2012 | 224 | 52.75 | 2.09 | 0.64 |
 | CSP-Darknet53 | ImageNet | train2012 | val2012 | 224 | - | - | - |
 | Mobilenet-v1 | ImageNet | train2012 | val2012 | 224 | 71.49 | 4.23 | 1.18 |
@@ -31,19 +31,38 @@ This is a repository for PyTorch training implementation of general purposed cla
 | Mobilenet-v3-small | ImageNet | train2012 | val2012 | 224 | - | - | - |
 | Mobilenet-v3-large | ImageNet | train2012 | val2012 | 224 | - | - | - |
 
+<details>
+  <summary>Pretrained Model Weights Download</summary>
 
- - **Pretrained Model Weights Download**
+- [DarkNet19-224](https://drive.google.com/file/d/1qVZjStNyHkTjQQSsyHkg9XgfnyxtFQau/view?usp=share_link)
+- [Darknet53-224](https://drive.google.com/file/d/1rLGltJki7OujkehJZNgnhj1Bp3JficIE/view?usp=share_link)
+- [Darknet53-tiny-224](https://drive.google.com/file/d/1fcSmzXvK7Zpr8OJnfN7RryysIibyhIsG/view?usp=share_link)
+- [Mobilenet-v1-224](https://drive.google.com/file/d/1S7PWp5qpyVSc8awyYGCoomCmxAuQ1f3A/view?usp=share_link)
 
-    - [DarkNet19-224](https://drive.google.com/file/d/1qVZjStNyHkTjQQSsyHkg9XgfnyxtFQau/view?usp=share_link)
-    - [DarkNet19-448](https://drive.google.com/file/d/1qjOfb-KESJFZoJRlwZ_2FbT4-9PkgdjZ/view?usp=share_link)
-    - [Darknet53-224](https://drive.google.com/file/d/1rLGltJki7OujkehJZNgnhj1Bp3JficIE/view?usp=share_link)
-    - [Darknet53-448](https://drive.google.com/file/d/1pYc_UlnG2G4EnVwidR7T5XAu16KZj6YP/view?usp=share_link)
-    - [Darknet53-tiny-224](https://drive.google.com/file/d/1fcSmzXvK7Zpr8OJnfN7RryysIibyhIsG/view?usp=share_link)
-    - [Mobilenet-v1-224](https://drive.google.com/file/d/1S7PWp5qpyVSc8awyYGCoomCmxAuQ1f3A/view?usp=share_link)
+</details>
 
+<br>
 
-![result](./asset/data.jpg)
+ - **448 x 448 Model Performance Table**
 
+| Model | Dataset | Train | Valid | Size<br><sup>(pixel) | Accuracy<br><sup>(Top-1) | Params<br><sup>(M) | FLOPs<br><sup>(B) |
+| :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: |
+| Darknet19 | ImageNet | train2012 | val2012 | 448 | 76.22 | 20.84 | 22.47 |
+| Darknet53 | ImageNet | train2012 | val2012 | 448 | 79.77 | 41.61 | 57.17 |
+| Darknet53-tiny | ImageNet | train2012 | val2012 | 448 | - | - | - |
+| CSP-Darknet53 | ImageNet | train2012 | val2012 | 448 | - | - | - |
+| Mobilenet-v1 | ImageNet | train2012 | val2012 | 448 | 71.49 | 4.23 | 1.18 |
+| Mobilenet-v2 | ImageNet | train2012 | val2012 | 448 | - | - | - |
+| Mobilenet-v3-small | ImageNet | train2012 | val2012 | 448 | - | - | - |
+| Mobilenet-v3-large | ImageNet | train2012 | val2012 | 448 | - | - | - |
+
+<details>
+  <summary>Pretrained Model Weights Download</summary>
+
+- [DarkNet19-448](https://drive.google.com/file/d/1qjOfb-KESJFZoJRlwZ_2FbT4-9PkgdjZ/view?usp=share_link)
+- [Darknet53-448](https://drive.google.com/file/d/1pYc_UlnG2G4EnVwidR7T5XAu16KZj6YP/view?usp=share_link)
+
+</details>
 
 ## [Usage]
 
