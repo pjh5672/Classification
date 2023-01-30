@@ -41,7 +41,7 @@ This is a repository for PyTorch training implementation of general purposed cla
 - [Mobilenet-v1](https://drive.google.com/file/d/1cyuyeJe3iAKI2mkeViWKdGaUpldkqqm3/view?usp=share_link)
 - [Mobilenet-v2](https://drive.google.com/file/d/19RiDI34QfuceWuLjHqI5HzynrbzZSKWT/view?usp=share_link)
 - [Mobilenet-v3-large](https://drive.google.com/file/d/16Fg5XQs5DsNoVaWKnF01MGu1asjF__YJ/view?usp=share_link)
-- [Mobilenet-v3-small](-)
+- [Mobilenet-v3-small(NOT YET)](-)
 
 </details>
 
@@ -65,12 +65,12 @@ This is a repository for PyTorch training implementation of general purposed cla
 
 - [Darknet19-448](https://drive.google.com/file/d/1suOCBQjdzuKv92mLqxULgDqkVSE8mQN9/view?usp=share_link)
 - [Darknet53-448](https://drive.google.com/file/d/1LRONP-YLa26qsGE1Egw3BSTZuqXY_Qh0/view?usp=share_link)
-- [Darknet53-tiny-448](-)
+- [Darknet53-tiny-448(NOT YET)](-)
 - [CSP-Darknet53-448](https://drive.google.com/file/d/16H0GxT0vqczu1mvp3H8Q82sPCoefmMCF/view?usp=share_link)
-- [Mobilenet-v1-448](-)
-- [Mobilenet-v2-448](-)
-- [Mobilenet-v3-large-448](-)
-- [Mobilenet-v3-small-448](-)
+- [Mobilenet-v1-448(NOT YET)](-)
+- [Mobilenet-v2-448(NOT YET)](-)
+- [Mobilenet-v3-large-448(NOT YET)](-)
+- [Mobilenet-v3-small-448(NOT YET)](-)
 
 </details>
 
