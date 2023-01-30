@@ -38,6 +38,8 @@ def build_model(arch_name, num_classes=1000, width_multiple=1.0, depth_multiple=
         raise RuntimeError("Only support model in [resnet(18-101), darknet(19, 53, 53-tiny), csp-darknet53, mobilenet(v1-v3)]")
     
     if pretrained:
+        if arch_name == "mobilenet-v3":
+            arch_name += f"-{mode}"
         ckpt = torch.load(ROOT.parents[0] / "weights" / f"{arch_name}.pt", map_location="cpu")
         model.load_state_dict(ckpt["model_state"], strict=True)
     return model
