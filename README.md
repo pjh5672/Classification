@@ -63,14 +63,14 @@ This is a repository for PyTorch training implementation of general purposed cla
 <details>
   <summary>Pretrained Model Weights Download</summary>
 
-- [Darknet19](https://drive.google.com/file/d/1zsJe6Av1ZpL7PmPndaMnud0Pjb4CSdt-/view?usp=share_link)
-- [Darknet53](https://drive.google.com/file/d/1duXcafb2QgORHDO1w-7E1UusLfWInwgA/view?usp=share_link)
-- [Darknet53-tiny](https://drive.google.com/file/d/13X39tcmNnYghvdBiosma7gsfwCxjsFQx/view?usp=share_link)
-- [CSP-Darknet53](https://drive.google.com/file/d/1OM9FJ1qflg4adxwzrlSgZKL23wKVmFns/view?usp=share_link)
-- [Mobilenet-v1](https://drive.google.com/file/d/1cyuyeJe3iAKI2mkeViWKdGaUpldkqqm3/view?usp=share_link)
-- [Mobilenet-v2](https://drive.google.com/file/d/19RiDI34QfuceWuLjHqI5HzynrbzZSKWT/view?usp=share_link)
-- [Mobilenet-v3-large](https://drive.google.com/file/d/16Fg5XQs5DsNoVaWKnF01MGu1asjF__YJ/view?usp=share_link)
-- [Mobilenet-v3-small](-)
+- [Darknet19-448](https://drive.google.com/file/d/1suOCBQjdzuKv92mLqxULgDqkVSE8mQN9/view?usp=share_link)
+- [Darknet53-448](https://drive.google.com/file/d/1LRONP-YLa26qsGE1Egw3BSTZuqXY_Qh0/view?usp=share_link)
+- [Darknet53-tiny-448](-)
+- [CSP-Darknet53-448](https://drive.google.com/file/d/16H0GxT0vqczu1mvp3H8Q82sPCoefmMCF/view?usp=share_link)
+- [Mobilenet-v1-448](-)
+- [Mobilenet-v2-448](-)
+- [Mobilenet-v3-large-448](-)
+- [Mobilenet-v3-small-448](-)
 
 </details>
 
