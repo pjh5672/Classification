@@ -15,7 +15,7 @@ SEED = 2023
 torch.manual_seed(SEED)
 
 from dataloader import build_dataset
-from arch import build_arch
+from model import build_model
 from utils import build_logger
 
 
