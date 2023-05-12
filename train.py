@@ -108,7 +108,7 @@ def parse_args(make_dirs=True):
     """
     parser = argparse.ArgumentParser()
     parser.add_argument('--exp', type=str, required=True, help='Name to log training')
-    parser.add_argument('--data', type=str, default='mit67', help='Dataset name(must be match to <dataset>.yaml')
+    parser.add_argument('--data', type=str, default='mit67', help='Dataset name to <data>.yaml')
     parser.add_argument('--model', type=str, default='resnet18', help='Model architecture')
     parser.add_argument('--mobile-v3', type=str, default='large', help='Mobilenetv3 architecture mode')
     parser.add_argument('--img-size', type=int, default=224, help="Model input size")

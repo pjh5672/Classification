@@ -27,7 +27,7 @@ def parse_args():
     """
     parser = argparse.ArgumentParser()
     parser.add_argument('--exp', type=str, required=True, help='Name to log training')
-    parser.add_argument('--data', type=str, default='cub200', help='dataset name(must be match to <dataset>.yaml')
+    parser.add_argument('--data', type=str, default='mit67', help='Dataset name to <data>.yaml')
     parser.add_argument('--img-size', type=int, default=224, help='Model input size')
     parser.add_argument('--batch-size', type=int, default=16, help='Batch size')
     parser.add_argument('--ckpt-name', type=str, default='best.pt', help='Path to trained model')
