@@ -24,7 +24,7 @@ ROOT = Path(__file__).resolve().parents[0]
 TIMESTAMP = datetime.today().strftime("%Y-%m-%d_%H-%M")
 
 from dataloader import build_dataset
-from arch import build_arch
+from arch import build_model
 from utils import (build_optimizer, build_criterion, build_scheduler,
                     set_lr, setup_worker_logging, setup_primary_logging, 
                     resume_state, de_parallel)
