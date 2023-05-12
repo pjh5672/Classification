@@ -106,7 +106,7 @@ def parse_args(make_dirs=True):
     parser = argparse.ArgumentParser()
     parser.add_argument('--exp', type=str, required=True, help='Name to log training')
     parser.add_argument('--data', type=str, default='mit67', help='Dataset name(must be match to <dataset>.yaml')
-    parser.add_argument('--arch', type=str, default='resnet18', help='Model architecture')
+    parser.add_argument('--model', type=str, default='resnet18', help='Model architecture')
     parser.add_argument('--loss', type=str, default='ce', help='Loss function')
     parser.add_argument('--optim', type=str, default='sgd', help='Optimizor for training')
     parser.add_argument('--batch-size', type=int, default=256, help='Batch size')
