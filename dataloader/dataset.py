@@ -17,9 +17,8 @@ class Dataset:
             self.hyp = yaml.load(f, Loader=yaml.FullLoader)
         self.phase = phase
         self.transformer = None
-        self.input_size = self.hyp['INPUT_SIZE']
-        
         self.image_dirs, self.image_paths = [], []
+
         data_dir = Path(self.hyp['PATH']) / self.hyp[self.phase.upper()]
         for fpath in sorted(glob.glob(str(data_dir / '*/*'), recursive=True)):
             if fpath.lower().endswith(('png', 'jpg', 'jpeg')):
@@ -100,13 +99,13 @@ if __name__ == "__main__":
     from utils import visualize_dataset
     
     yaml_path = ROOT / 'data' / 'image.yaml'
+    input_size = 224
+
     train_dataset = Dataset(yaml_path=yaml_path, phase='train')
     val_dataset = Dataset(yaml_path=yaml_path, phase='val')
     val_dataset.mean, val_dataset.std = train_dataset.mean, train_dataset.std
-    train_transformer = TrainTransform(input_size=train_dataset.input_size, 
-                                        mean=train_dataset.mean, std=train_dataset.std)
-    val_transformer = ValidTransform(input_size=train_dataset.input_size, 
-                                    mean=train_dataset.mean, std=train_dataset.std)
+    train_transformer = TrainTransform(input_size=input_size, mean=train_dataset.mean, std=train_dataset.std)
+    val_transformer = ValidTransform(input_size=input_size, mean=train_dataset.mean, std=train_dataset.std)
     train_dataset.load_transformer(transformer=train_transformer)
     val_dataset.load_transformer(transformer=val_transformer)
     

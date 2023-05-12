@@ -28,10 +28,11 @@ def parse_args():
     parser = argparse.ArgumentParser()
     parser.add_argument('--exp', type=str, required=True, help='Name to log training')
     parser.add_argument('--data', type=str, default='cub200', help='dataset name(must be match to <dataset>.yaml')
+    parser.add_argument('--img-size', type=int, default=224, help='Model input size')
     parser.add_argument('--batch-size', type=int, default=16, help='Batch size')
     parser.add_argument('--ckpt-name', type=str, default='best.pt', help='Path to trained model')
-    parser.add_argument('--workers', type=int, default=8, help='Number of workers for dataloader')
     parser.add_argument('--rank', type=int, default=0, help='Process id for computation')
+    parser.add_argument('--workers', type=int, default=8, help='Number of workers for dataloader')
 
     args = parser.parse_args()
     args.data = ROOT / 'data' / args.data
@@ -45,12 +46,11 @@ def main_work(**kwargs):
     """
     logger.info(f'[Arguments]\n{pprint.pformat(vars(args))}\n')
 
-    _, val_dataset, _ = build_dataset(str(args.data)+'.yaml')
-    val_loader = DataLoader(dataset=val_dataset, batch_size=args.batch_size, 
-                            shuffle=False, pin_memory=True, num_workers=args.workers)
+    _, val_dataset, _ = build_dataset(str(args.data)+'.yaml', input_size=args.img_size)
+    val_loader = DataLoader(dataset=val_dataset, batch_size=args.batch_size, shuffle=False, pin_memory=True, num_workers=args.workers)
     val_loader = tqdm(val_loader, desc='[VAL]', ncols=110, leave=False)
     ckpt = torch.load(args.ckpt_path, map_location = {'cpu':'cuda:%d' %args.rank})
-    model = build_arch(arch_name=ckpt['arch_name'], num_classes=len(ckpt['idx2cls']))
+    model = build_model(arch_name=ckpt['model'], num_classes=len(ckpt['class_list']))
     model.load_state_dict(ckpt['model_state'], strict=True)
     model.cuda(args.rank)
     
@@ -78,7 +78,7 @@ def validate(args, dataloader, model, epoch=0):
 
     for _, minibatch in enumerate(dataloader):
         images, labels = minibatch[0], minibatch[1]
-        predictions = model.forward(images.cuda(args.rank, non_blocking=True))['out']
+        predictions = model(images.cuda(args.rank, non_blocking=True))
         acc = accuracy(predictions, labels.cuda(args.rank, non_blocking=True), topk=(1, 5))
         avg_top1_acc += acc[0].item()
         avg_top5_acc += acc[1].item()

@@ -15,7 +15,7 @@ else:
     from transform import TrainTransform, ValidTransform
 
 
-def build_dataset(yaml_path):
+def build_dataset(yaml_path, input_size=224):
     """build method for classification dataset via calling predefined <data>.yaml
 
     Args:
@@ -29,10 +29,8 @@ def build_dataset(yaml_path):
     val_dataset = Dataset(yaml_path=yaml_path, phase='val')
     val_dataset.mean, val_dataset.std = train_dataset.mean, train_dataset.std
     
-    train_transformer = TrainTransform(input_size=train_dataset.input_size, 
-                                        mean=train_dataset.mean, std=train_dataset.std)
-    val_transformer = ValidTransform(input_size=train_dataset.input_size, 
-                                    mean=train_dataset.mean, std=train_dataset.std)
+    train_transformer = TrainTransform(input_size=input_size, mean=train_dataset.mean, std=train_dataset.std)
+    val_transformer = ValidTransform(input_size=input_size, mean=train_dataset.mean, std=train_dataset.std)
     train_dataset.load_transformer(transformer=train_transformer)
     val_dataset.load_transformer(transformer=val_transformer)
     return train_dataset, val_dataset, train_dataset.hyp
@@ -47,7 +45,8 @@ if __name__ == "__main__":
         sys.path.append(str(ROOT))
         
     yaml_path = ROOT / 'data' / 'imagenet.yaml'
-    train_dataset, val_dataset, hyp = build_dataset(yaml_path=yaml_path)
+    input_size = 224
+    train_dataset, val_dataset, hyp = build_dataset(yaml_path=yaml_path, input_size=input_size)
     train_loader = DataLoader(train_dataset, batch_size=512, shuffle=False, num_workers=8)
     
     avg_time = 0.0
