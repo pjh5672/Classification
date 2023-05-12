@@ -20,7 +20,7 @@ This is a repository for PyTorch training implementation of general purposed cla
 
  - **224 x 224 Model Performance Table**
 
-| Model | Dataset | Train | Valid | Size<br><sup>(pixel) | Accuracy<br><sup>(Top-1) | Params<br><sup>(M) | FLOPs<br><sup>(B) |
+| Model | Dataset | Train | Valid | Size<br><sup>(pixel) | Accuracy<br><sup>(Top-1) | Params<br><sup>(M) | FLOPs<br><sup>(G) |
 | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: |
 | Darknet19 | ImageNet | train2012 | val2012 | 224 | 73.50 | 20.84 | 5.62 |
 | Darknet53 | ImageNet | train2012 | val2012 | 224 | 77.67 | 41.61 | 14.29 |
@@ -49,7 +49,7 @@ This is a repository for PyTorch training implementation of general purposed cla
 
  - **448 x 448 Model Performance Table**
 
-| Model | Dataset | Train | Valid | Size<br><sup>(pixel) | Accuracy<br><sup>(Top-1) | Params<br><sup>(M) | FLOPs<br><sup>(B) |
+| Model | Dataset | Train | Valid | Size<br><sup>(pixel) | Accuracy<br><sup>(Top-1) | Params<br><sup>(M) | FLOPs<br><sup>(G) |
 | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: |
 | Darknet19 | ImageNet | train2012 | val2012 | 448 | 76.22 | 20.84 | 22.47 |
 | Darknet53 | ImageNet | train2012 | val2012 | 448 | 79.77 | 41.61 | 57.17 |
