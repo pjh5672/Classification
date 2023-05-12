@@ -77,11 +77,7 @@ def setup_worker_logging(rank: int, log_queue: Queue):
     root_logger.setLevel(logging.WARNING)
 
 
-def build_basic_logger(log_file_path: str, set_level=2):
-    output_file_log_handler = logging.FileHandler(filename=str(log_file_path))
-    formatter = logging.Formatter('%(asctime)s | %(message)s', '%Y-%m-%d %H:%M:%S')
-    output_file_log_handler.setFormatter(formatter)
-
+def build_logger(log_file_path: str, set_level=2):
     logger_levels = [
         logging.DEBUG, # set_level = 0
         logging.INFO, # set_level = 1
@@ -89,6 +85,9 @@ def build_basic_logger(log_file_path: str, set_level=2):
         logging.ERROR, # set_level = 3
         logging.CRITICAL # set_level = 4
     ]
+    output_file_log_handler = logging.FileHandler(filename=str(log_file_path))
+    formatter = logging.Formatter('%(asctime)s | %(message)s', '%Y-%m-%d %H:%M:%S')
+    output_file_log_handler.setFormatter(formatter)
 
     logger = logging.getLogger()
     logger.setLevel(level=logger_levels[set_level])

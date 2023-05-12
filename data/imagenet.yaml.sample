@@ -1,7 +1,13 @@
-PATH: /media/jhpark/STORE/DATASET/ILSVRC2012
+PATH: D:\DATASET\imagenet
 
 TRAIN: train
 VAL: val
+
+INPUT_SIZE: 224
+
+# MEAN & STD IS BASED ON 'BGR' COLOR SPACE
+MEAN: [0.406, 0.456, 0.485]
+STD: [0.225, 0.224, 0.229]
 
 CLASS_INFO: {
   0: 'tench, Tinca tinca',
