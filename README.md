@@ -13,7 +13,7 @@
 
 ## [Description]
 
-This is a repository for PyTorch training implementation of general purposed classifier. With the training code, various feature extractor backbones such as Resnet, Darknet, CSP-Darknet53, Mobilenet series can be created.  
+This is a repository for PyTorch training implementation of general purposed classifier. With the training code, various feature extractor backbones such as Resnet, Darknet, CSP-Darknet53, Mobilenet series can be created. It can provide 6x faster dataloader rather than torchvision.datasets.ImageFolder.    
 
 ![result](./asset/data.jpg)
 

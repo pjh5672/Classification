@@ -11,6 +11,7 @@ from tqdm import tqdm
 
 from transform import TrainTransform, ValidTransform, to_tensor
 
+
 class Dataset:
     def __init__(self, yaml_path, phase):
         with open(yaml_path, mode='r') as f:
@@ -74,7 +75,6 @@ class Dataset:
         std_b = np.mean([s[0] for s in std_bgr])
         std_g = np.mean([s[1] for s in std_bgr])
         std_r = np.mean([s[2] for s in std_bgr])
-        
         return [mean_b, mean_g, mean_r], [std_b, std_g, std_r]
 
     @staticmethod
@@ -109,10 +109,8 @@ if __name__ == "__main__":
     train_dataset.load_transformer(transformer=train_transformer)
     val_dataset.load_transformer(transformer=val_transformer)
     
-    train_loader = DataLoader(train_dataset, batch_size=8, shuffle=False, 
-                                collate_fn=train_dataset.collate_fn)
-    val_loader = DataLoader(val_dataset, batch_size=8, shuffle=False,
-                            collate_fn=train_dataset.collate_fn)
+    train_loader = DataLoader(train_dataset, batch_size=8, shuffle=False, collate_fn=train_dataset.collate_fn)
+    val_loader = DataLoader(val_dataset, batch_size=8, shuffle=False, collate_fn=train_dataset.collate_fn)
 
     for idx, batch in enumerate(train_loader):
         images, labels = batch
@@ -122,8 +120,6 @@ if __name__ == "__main__":
         if idx == 0:
             break
 
-    vis_image = visualize_dataset(img_loader=train_loader, 
-                                    class_list=train_dataset.idx2cls, 
-                                    mean=train_dataset.mean, std=train_dataset.std, 
-                                    font_scale=0.8, thickness=1, show_nums=6)
+    vis_image = visualize_dataset(img_loader=train_loader, class_list=train_dataset.idx2cls, 
+                                  mean=train_dataset.mean, std=train_dataset.std, font_scale=0.8, thickness=1, show_nums=6)
     cv2.imwrite( str(ROOT / 'asset' / yaml_path.with_suffix('.jpg').name ), vis_image)

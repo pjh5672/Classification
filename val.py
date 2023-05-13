@@ -50,7 +50,7 @@ def main_work(**kwargs):
     val_loader = DataLoader(dataset=val_dataset, batch_size=args.batch_size, shuffle=False, pin_memory=True, num_workers=args.workers)
     val_loader = tqdm(val_loader, desc='[VAL]', ncols=110, leave=False)
     ckpt = torch.load(args.ckpt_path, map_location = {'cpu':'cuda:%d' %args.rank})
-    model = build_model(arch_name=ckpt['model'], num_classes=len(ckpt['class_list']))
+    model = build_model(arch_name=ckpt['model'], num_classes=len(ckpt['idx2cls']))
     model.load_state_dict(ckpt['model_state'], strict=True)
     model.cuda(args.rank)
     

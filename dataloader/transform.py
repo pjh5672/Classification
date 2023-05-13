@@ -30,7 +30,6 @@ class TrainTransform:
             HorizontalFlip(),
             RandomResizedCrop(size=input_size),
             #### Photometric Augment ####
-            AddPCANoise(std=0.1),
             RandomBrightness(delta=102),
             AdjustHSV(h_delta=72, s_value=(0.6, 1.4)),
             ##### End-of-Augment #####
@@ -243,35 +242,3 @@ class AdjustHSV:
             image = self.random_sat(self.random_hue(image=image))
             image = cv2.cvtColor(image, cv2.COLOR_HSV2BGR)
         return image
-
-
-class AddPCANoise:
-    """add noise to the given image using PCA components.
-    """
-    def __init__(self, std=0.1):
-        self.std = std
-    
-    def __call__(self, image):
-        if not isinstance(image.dtype, np.float32):
-            image = image.astype(np.float32)
-
-        image = image / image.max()  # rescale to 0 to 1 range
-        img_rs = image.reshape(-1, 3) # flatten image to columns of RGB
-        img_centered = img_rs - np.mean(img_rs, axis=0) # center mean
-        img_cov = np.cov(img_centered, rowvar=False) # 3x3 covariance matrix
-        try:
-            eig_vals, eig_vecs = np.linalg.eigh(img_cov) # eigen values and eigen vectors
-        except Exception as e:
-            print(e)
-            print((img_cov == 0).sum())
-            print(np.isnan(img_cov))
-            print(img_cov.max())
-        # sort values and vector
-        sort_perm = eig_vals[::-1].argsort() 
-        eig_vals[::-1].sort()
-        eig_vecs = eig_vecs[:, sort_perm]
-        
-        m1 = eig_vecs.T
-        m2 = np.random.normal(0, self.std, size=3) * eig_vals
-        image[..., :] += (m1 @ m2)
-        return np.clip(image, 0, 1) * 255

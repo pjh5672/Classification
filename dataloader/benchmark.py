@@ -71,7 +71,6 @@ if __name__ == "__main__":
     # cv2.imwrite(f'./asset/data.jpg', vis_image)
 
     import time
-
     avg_time = 0.0
     max_count = 30
     test_loader = iter(train_dataloader)

@@ -172,13 +172,13 @@ def main_work(rank, world_size, args, logger):
     args.workers = min([os.cpu_count() // max(world_size, 1), args.batch_size if args.batch_size > 1 else 0, args.workers])
 
     ################################### Init Instance ###################################
-    train_dataset, val_dataset, hyp = build_dataset(yaml_path=str(args.data)+'.yaml', input_size=args.img_size)
+    train_dataset, val_dataset, idx2cls = build_dataset(yaml_path=str(args.data)+'.yaml', input_size=args.img_size)
     train_sampler = distributed.DistributedSampler(dataset=train_dataset, num_replicas=world_size, rank=args.rank, shuffle=True)
     train_loader = DataLoader(dataset=train_dataset, batch_size=args.batch_size, shuffle=False, 
                               pin_memory=True, num_workers=args.workers, sampler=train_sampler)
     val_loader = DataLoader(dataset=val_dataset, batch_size=args.batch_size, shuffle=False, pin_memory=True, num_workers=args.workers)
     args.nw = max(round(args.warmup * len(train_loader)), 100)
-    model = build_model(arch_name=args.model, num_classes=len(hyp['CLASS_INFO']), width_multiple=args.width_multiple, 
+    model = build_model(arch_name=args.model, num_classes=len(idx2cls), width_multiple=args.width_multiple, 
                         depth_multiple=args.depth_multiple, mode=args.mobile_v3, pretrained=args.pretrained)
     macs, params = profile(deepcopy(model), inputs=(torch.randn(1, 3, args.img_size, args.img_size),), verbose=False)
     criterion = build_criterion(name=args.loss, label_smoothing=args.label_smoothing)
@@ -217,7 +217,7 @@ def main_work(rank, world_size, args, logger):
         
         if args.rank == 0:
             save_obj = {"running_epoch": epoch,
-                        "class_list": hyp['CLASS_INFO'],
+                        "idx2cls": idx2cls,
                         "model": args.model,
                         "mobile_v3": args.mobile_v3, 
                         "width_multiple": args.width_multiple,
