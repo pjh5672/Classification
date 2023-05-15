@@ -32,7 +32,7 @@ from utils import (build_optimizer, build_criterion, build_scheduler,
 from val import validate
 
 
-def setup(rank, world_size):
+def setup(rank, world_size, port):
     """set DDP environment to trigger gradient synchronization across processes
 
     Args:
@@ -41,7 +41,7 @@ def setup(rank, world_size):
     """
     if OS_SYSTEM == "Linux":
         os.environ["MASTER_ADDR"] = "localhost"
-        os.environ["MASTER_PORT"] = "2355"
+        os.environ["MASTER_PORT"] = port
         dist.init_process_group("nccl", rank=rank, world_size=world_size)
 
 
@@ -130,6 +130,7 @@ def parse_args(make_dirs=True):
     parser.add_argument('--depth-multiple', type=float, default=1.0, help='CSP-Model depth multiple')
     parser.add_argument('--pretrained', action='store_true', help='Training with pretrained weights')
     parser.add_argument('--resume', action='store_true', help='Name to resume path')
+    parser.add_argument('--port', type=str, default='5555', help='Backend port for gradient communication')
     
     args = parser.parse_args()
     args.data = ROOT / 'data' / args.data
@@ -153,7 +154,7 @@ def main_work(rank, world_size, args, logger):
         logger (logging): logging instance
     """
     ################################### Init Process ####################################
-    setup(rank, world_size)
+    setup(rank, world_size, args.port)
     torch.cuda.set_device(rank)
 
     if OS_SYSTEM == "Linux":
