@@ -1,4 +1,3 @@
-import pprint
 import platform
 import argparse
 from pathlib import Path
@@ -28,7 +27,7 @@ def parse_opt():
     """
     parser = argparse.ArgumentParser()
     parser.add_argument('--exp', type=str, required=True, help='Name to log training')
-    parser.add_argument('--dataset', type=str, default='mit67', help='Dataset name to <data>.yaml')
+    parser.add_argument('--dataset', type=str, default='mit67', help='Dataset name')
     parser.add_argument('--img-size', type=int, default=224, help='Model input size')
     parser.add_argument('--batch-size', type=int, default=16, help='Batch size')
     parser.add_argument('--num-epoch', type=int, default=0, help='Number of dummy epoch')
