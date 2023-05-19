@@ -106,7 +106,7 @@ def train(args, dataloader, model, criterion, optimizer, scaler):
     return progress_msg
 
 
-def parse_opt(make_dirs=True):
+def parse_opt():
     """parse argument parameters for training
 
     Args:
@@ -140,6 +140,7 @@ def parse_opt(make_dirs=True):
     parser.add_argument('--pretrained', action='store_true', help='Training with pretrained weights')
     parser.add_argument('--resume', action='store_true', help='Name to resume path')
     parser.add_argument('--cache', action='store_true', help='Cache image in RAM')
+    parser.add_argument('--evolve', type=int, nargs='?', const=300, help='Evolve hyperparameters for x generations')
     parser.add_argument('--port', type=str, default='5555', help='Backend port for gradient communication')
     
     args = parser.parse_args()
@@ -147,12 +148,14 @@ def parse_opt(make_dirs=True):
     args.hyp = ROOT / 'data' / f'{args.dataset}.hyp.yaml'
     args.exp_path = ROOT / 'experiment' / args.exp
     args.weight_dir = args.exp_path / 'weight'
+    args.evolve_dir = args.exp_path / 'evolve'
     args.load_path = args.weight_dir / 'last.pt' if args.resume else None
     assert args.world_size > 0, 'Executable GPU machine does not exist, support CUDA-available env'
-    
-    if make_dirs:
-        os.makedirs(args.weight_dir, exist_ok=True)
-    
+
+    os.makedirs(args.weight_dir, exist_ok=True)
+    if args.evolve:
+        os.makedirs(args.evolve_dir, exist_ok=True)
+
     opt = argparse.Namespace()
     opt.data = argparse.Namespace(**yaml_load(args.data))
     opt.hyp = argparse.Namespace(**yaml_load(args.hyp))
@@ -196,21 +199,20 @@ def main_work(rank, world_size, opt, logger):
 
     ################################### Init Instance ###################################
     args.rank = rank
-    img_size = args.img_size
-    batch_size = args.batch_size
-    
     train_dataset, val_dataset = build_dataset(opt=opt, cache_images=args.cache)
     train_sampler = distributed.DistributedSampler(dataset=train_dataset, num_replicas=world_size, 
                                                    rank=rank, shuffle=True)
-    train_loader = DataLoader(dataset=train_dataset, batch_size=batch_size, shuffle=False, 
+    train_loader = DataLoader(dataset=train_dataset, batch_size=args.batch_size, shuffle=False, 
                               pin_memory=True, num_workers=args.workers, sampler=train_sampler)
-    val_loader = DataLoader(dataset=val_dataset, batch_size=batch_size, shuffle=False, 
+    val_loader = DataLoader(dataset=val_dataset, batch_size=args.batch_size, shuffle=False, 
                             pin_memory=True, num_workers=args.workers)
     args.nw = max(round(args.warmup * len(train_loader)), 100)
     model = build_model(arch_name=args.model, num_classes=len(data.CLASS_INFO), 
                         width_multiple=args.width_multiple, depth_multiple=args.depth_multiple, 
                         mode=args.mobile_v3, pretrained=args.pretrained)
-    macs, params = profile(deepcopy(model), inputs=(torch.randn(1, 3, img_size, img_size),), verbose=False)
+    macs, params = profile(deepcopy(model), 
+                           inputs=(torch.randn(1, 3, args.img_size, args.img_size),), 
+                           verbose=False)
     criterion = build_criterion(name=args.loss, label_smoothing=args.label_smoothing)
     optimizer = build_optimizer(model=model, name=args.optim, lr=args.base_lr, 
                                 momentum=args.momentum, weight_decay=args.weight_decay)
@@ -247,18 +249,18 @@ def main_work(rank, world_size, opt, logger):
                                    optimizer=optimizer, scaler=scaler)
         
         if args.rank == 0:
-            save_obj = {"running_epoch": epoch,
-                        "idx2cls": data.CLASS_INFO,
-                        "model": args.model,
-                        "mobile_v3": args.mobile_v3, 
-                        "width_multiple": args.width_multiple,
-                        "depth_multiple": args.depth_multiple,
-                        "model_state": deepcopy(de_parallel(model)).state_dict(),
-                        "optimizer_state": optimizer.state_dict(),
-                        "scheduler_state": scheduler.state_dict(),
-                        "scaler_state_dict": scaler.state_dict(),
-                        "loss_type": args.loss,
-                        "label_smoothing": args.label_smoothing}
+            save_obj = {'running_epoch': epoch,
+                        'idx2cls': data.CLASS_INFO,
+                        'model': args.model,
+                        'mobile_v3': args.mobile_v3, 
+                        'width_multiple': args.width_multiple,
+                        'depth_multiple': args.depth_multiple,
+                        'model_state': deepcopy(de_parallel(model)).state_dict(),
+                        'optimizer_state': optimizer.state_dict(),
+                        'scheduler_state': scheduler.state_dict(),
+                        'scaler_state_dict': scaler.state_dict(),
+                        'loss_type': args.loss,
+                        'label_smoothing': args.label_smoothing}
             torch.save(save_obj, args.weight_dir / 'last.pt')
 
             val_loader = tqdm(val_loader, desc=f'[VAL:{epoch:03d}/{args.num_epoch:03d}]', ncols=110, leave=False)
@@ -278,7 +280,7 @@ def main_work(rank, world_size, opt, logger):
 
 
 if __name__ == "__main__":
-    opt = parse_opt(make_dirs=True)
+    opt = parse_opt()
     args = opt.args
     world_size = args.world_size
 
