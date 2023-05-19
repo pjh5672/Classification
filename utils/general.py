@@ -1,7 +1,22 @@
 import math
+from pathlib import Path
 
+import yaml
 from torch import nn
 from torch import optim
+
+
+def yaml_load(file):
+    # Single-line safe yaml loading
+    with open(file, errors='ignore') as f:
+        return yaml.safe_load(f)
+
+
+def yaml_save(file, data={}, default_flow_style=False):
+    # Single-line safe yaml saving
+    with open(file, 'w') as f:
+        yaml.safe_dump({k: str(v) if isinstance(v, Path) else v for k, v in data.items()}, 
+                       f, sort_keys=False, default_flow_style=default_flow_style)
 
 
 def is_parallel(model):

@@ -6,6 +6,9 @@ if ROOT not in sys.path:
     sys.path.append(ROOT)
 
 from .log import *
+from .dist import *
+from .eval import *
+from .meter import *
 from .resume import *
 from .general import *
 from .visualize import *

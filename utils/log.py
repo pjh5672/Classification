@@ -43,7 +43,7 @@ class WorkerLogFilter(Filter):
 
     def filter(self, record):
         if self._rank != -1:
-            record.msg = f"Rank {self._rank} | {record.msg}"
+            record.msg = f'{record.msg}'
         return True
 
 

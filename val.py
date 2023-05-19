@@ -16,10 +16,11 @@ torch.manual_seed(SEED)
 
 from dataloader import build_dataset
 from model import build_model
-from utils import build_logger
+from utils import (build_logger, build_criterion, compute_accuracy, 
+                   AverageMeter, ProgressMeter, yaml_load)
 
 
-def parse_args():
+def parse_opt():
     """parse argument parameters for evaluation
 
     Returns:
@@ -27,39 +28,53 @@ def parse_args():
     """
     parser = argparse.ArgumentParser()
     parser.add_argument('--exp', type=str, required=True, help='Name to log training')
-    parser.add_argument('--data', type=str, default='mit67', help='Dataset name to <data>.yaml')
+    parser.add_argument('--dataset', type=str, default='mit67', help='Dataset name to <data>.yaml')
     parser.add_argument('--img-size', type=int, default=224, help='Model input size')
     parser.add_argument('--batch-size', type=int, default=16, help='Batch size')
+    parser.add_argument('--num-epoch', type=int, default=0, help='Number of dummy epoch')
     parser.add_argument('--ckpt-name', type=str, default='best.pt', help='Path to trained model')
     parser.add_argument('--rank', type=int, default=0, help='Process id for computation')
     parser.add_argument('--workers', type=int, default=8, help='Number of workers for dataloader')
 
     args = parser.parse_args()
-    args.data = ROOT / 'data' / args.data
+    args.data = ROOT / 'data' / f'{args.dataset}.data.yaml'
+    args.hyp = ROOT / 'data' / f'{args.dataset}.hyp.yaml'
     args.exp_path = ROOT / 'experiment' / args.exp
     args.ckpt_path = args.exp_path / 'weight' / args.ckpt_name
-    return args
+
+    opt = argparse.Namespace()
+    opt.data = argparse.Namespace(**yaml_load(args.data))
+    opt.hyp = argparse.Namespace(**yaml_load(args.hyp))
+    opt.args = args
+    opt.input_size = args.img_size
+    return opt
 
 
 def main_work(**kwargs):
     """load dataloader and trained classifier model and evaluate it.
     """
-    logger.info(f'[Arguments]\n{pprint.pformat(vars(args))}\n')
-
-    _, val_dataset, _ = build_dataset(str(args.data)+'.yaml', input_size=args.img_size)
-    val_loader = DataLoader(dataset=val_dataset, batch_size=args.batch_size, shuffle=False, pin_memory=True, num_workers=args.workers)
+    args = opt.args
+    batch_size = args.batch_size
+    num_workers = args.workers
+    
+    _, val_dataset = build_dataset(opt=opt)
+    val_loader = DataLoader(dataset=val_dataset, batch_size=batch_size, 
+                            shuffle=False, pin_memory=True, num_workers=num_workers)
     val_loader = tqdm(val_loader, desc='[VAL]', ncols=110, leave=False)
     ckpt = torch.load(args.ckpt_path, map_location = {'cpu':'cuda:%d' %args.rank})
     model = build_model(arch_name=ckpt['model'], num_classes=len(ckpt['idx2cls']))
+    criterion = build_criterion(name=ckpt['loss_type'], 
+                                label_smoothing=ckpt['label_smoothing'])
     model.load_state_dict(ckpt['model_state'], strict=True)
     model.cuda(args.rank)
     
-    _, _, eval_msg = validate(args=args, dataloader=val_loader, model=model)
-    logger.info(f'[Validation Result]\n{eval_msg}')
+    _, val_progress_msg = validate(args=args, dataloader=val_loader, 
+                                   model=model, criterion=criterion)
+    logger.info(f'[Validation Result]\n{val_progress_msg}')
     
 
 @torch.no_grad()
-def validate(args, dataloader, model, epoch=0):
+def validate(args, dataloader, model, criterion, epoch=0):
     """evaluate trained classifier model.
 
     Args:
@@ -72,51 +87,33 @@ def validate(args, dataloader, model, epoch=0):
         float: top-1, top-5 accuracy after evaluation
         str: accuracy message for the given epoch
     """
+    losses = AverageMeter('Loss', ':5.4f')
+    top1 = AverageMeter('Acc@1', ':5.2f')
+    top5 = AverageMeter('Acc@5', ':5.2f')
+    progress = ProgressMeter(num_epochs=args.num_epoch, 
+                             meters=[losses, top1, top5], prefix='  Val:')
     model.eval()
-    avg_top1_acc = 0.0
-    avg_top5_acc = 0.0
 
-    for _, minibatch in enumerate(dataloader):
-        images, labels = minibatch[0], minibatch[1]
-        predictions = model(images.cuda(args.rank, non_blocking=True))
-        acc = accuracy(predictions, labels.cuda(args.rank, non_blocking=True), topk=(1, 5))
-        avg_top1_acc += acc[0].item()
-        avg_top5_acc += acc[1].item()
+    for _, batch in enumerate(dataloader):
+        images = batch[0].cuda(args.rank, non_blocking=True)
+        labels = batch[1].cuda(args.rank, non_blocking=True)
+
+        predictions = model(images)
+        loss = criterion(predictions, labels)
+        acc1, acc5 = compute_accuracy(predictions, labels, topk=(1, 5))
         
-    del images, predictions
+        losses.update(loss.item(), images.size(0))
+        top1.update(acc1[0], images.size(0))
+        top5.update(acc5[0], images.size(0))
+        
+    del images, labels, predictions
     torch.cuda.empty_cache()
-    
-    avg_top1_acc /= len(dataloader)
-    avg_top5_acc /= len(dataloader)
-    acc_msg = f'[Val-Epoch:{epoch:03d}] Top1 Acc: {avg_top1_acc:.2f} Top5 Acc: {avg_top5_acc:.2f}'
-    return avg_top1_acc, avg_top5_acc, acc_msg
-
-
-def accuracy(output, target, topk=(1,)):
-    """computes the accuracy over the k top predictions for the specified values of k.
-
-    Args:
-        output (_type_): _description_
-        target (_type_): _description_
-        topk (tuple, optional): _description_. Defaults to (1,).
-
-    Returns:
-        _type_: _description_
-    """
-    maxk = max(topk)
-    batch_size = target.shape[0]
-    _, pred = output.topk(maxk, dim=1, largest=True, sorted=True)
-    pred = pred.t()
-    correct = pred.eq(target.reshape(1, -1).expand_as(pred))
-
-    res = []
-    for k in topk:
-        correct_k = correct[:k].reshape(-1).float().sum(0, keepdim=True)
-        res.append(correct_k.mul_(100.0 / batch_size))
-    return res
+    progress_msg = progress.get_summary(epoch)
+    return top1.avg, progress_msg
 
 
 if __name__ == "__main__":
-    args = parse_args()
+    opt = parse_opt()
+    args = opt.args
     logger = build_logger(log_file_path=args.exp_path / 'val.log', set_level=1)
-    main_work(args=args, logger=logger)
+    main_work(opt=opt, logger=logger)

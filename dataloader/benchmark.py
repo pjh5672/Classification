@@ -51,7 +51,7 @@ if __name__ == "__main__":
 
     from utils import visualize_dataset
 
-    yaml_path = ROOT / 'data' / 'imagenet.yaml'
+    yaml_path = ROOT / 'data' / 'dogs.data.yaml'
     input_size = 224
     
     dataset, class_list = build_dataset(yaml_path=yaml_path, input_size=input_size)
@@ -72,7 +72,7 @@ if __name__ == "__main__":
 
     import time
     avg_time = 0.0
-    max_count = 30
+    max_count = 23
     test_loader = iter(train_dataloader)
     for idx in range(max_count):
         tic = time.time()

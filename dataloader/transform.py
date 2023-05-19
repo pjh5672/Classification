@@ -5,35 +5,23 @@ import torch
 import numpy as np
 
 
-def to_tensor(image):
-    image = np.ascontiguousarray(image.transpose(2,0,1))
-    return torch.from_numpy(image).float()
-
-
-def to_image(tensor, mean, std):
-    denorm_tensor = tensor.clone()
-    for t, m, s in zip(denorm_tensor, mean, std):
-        t.mul_(s).add_(m)
-    denorm_tensor.clamp_(min=0, max=1.)
-    denorm_tensor *= 255
-    return denorm_tensor.permute(1,2,0).numpy().astype(np.uint8)
-
-
 class TrainTransform:
     """augmentation class for model training
     """
-    def __init__(self, input_size, mean, std):
+    def __init__(self, input_size, mean, std,
+                 scale=(0.08, 1.0), ratio=(3/4, 4/3),
+                 h_gain=0.4, s_gain=0.4, v_gain=0.4):
         mean = np.array(mean, dtype=np.float32)
         std = np.array(std, dtype=np.float32)
         self.tfs = Compose([
             ##### Geometric Augment #####
             HorizontalFlip(),
-            RandomResizedCrop(size=input_size),
+            RandomResizedCrop(size=input_size, scale=scale, ratio=ratio),
             #### Photometric Augment ####
-            RandomBrightness(delta=102),
-            AdjustHSV(h_delta=72, s_value=(0.6, 1.4)),
+            AugmentHSV(h_gain=h_gain, s_gain=s_gain, v_gain=v_gain),
             ##### End-of-Augment #####
-            Normalize(mean=mean, std=std)
+            Normalize(mean=mean, std=std),
+            ToTensor()
         ])
     
     def __call__(self, image):
@@ -49,7 +37,8 @@ class ValidTransform:
         self.tfs = Compose([
             Resize(size=256),
             CenterCrop(size=input_size),
-            Normalize(mean=mean, std=std)
+            Normalize(mean=mean, std=std),
+            ToTensor()
         ])
     
     def __call__(self, image):
@@ -65,6 +54,25 @@ class Compose:
     def __call__(self, image):
         for tf in self.transforms:
             image = tf(image)
+        return image
+
+
+class AugmentHSV:
+    
+    def __init__(self, h_gain=0.5, s_gain=0.5, v_gain=0.5):
+        self.h_gain = h_gain
+        self.s_gain = s_gain
+        self.v_gain = v_gain
+    
+    def __call__(self, image):
+        r = np.random.uniform(-1, 1, 3) * [self.h_gain, self.s_gain, self.v_gain] + 1
+        hue, sat, val = cv2.split(cv2.cvtColor(image, cv2.COLOR_BGR2HSV))
+        x = np.arange(0, 256, dtype=r.dtype)
+        lut_hue = ((x * r[0]) % 180).astype(np.uint8)
+        lut_sat = np.clip(x * r[1], 0, 255).astype(np.uint8)
+        lut_val = np.clip(x * r[2], 0, 255).astype(np.uint8)
+        im_hsv = cv2.merge((cv2.LUT(hue, lut_hue), cv2.LUT(sat, lut_sat), cv2.LUT(val, lut_val)))
+        image = cv2.cvtColor(im_hsv, cv2.COLOR_HSV2BGR)
         return image
 
 
@@ -110,7 +118,7 @@ class CenterCrop:
 class RandomResizedCrop:
     """crop a random portion of image and resize it to a given size.
     """
-    def __init__(self, size, scale=(0.08, 1.0), ratio=(3./4., 4./3.)):
+    def __init__(self, size, scale=(0.08, 1.0), ratio=(3/4, 4/3)):
         self.size = size
         self.scale = scale
         self.ratio = ratio
@@ -157,88 +165,14 @@ class Normalize:
     def __call__(self, image):
         if not isinstance(image.dtype, np.float32):
             image = image.astype(np.float32)
-        image /= 255.0
+        image /= 255
         image -= self.mean
         image /= self.std
         return image
 
 
-class RandomBrightness:
-    """adjust brightness of an image using uniform distribution.
-    """
-    def __init__(self, delta=102):
-        assert delta >= 0 and delta <= 255
-        self.delta = delta
-
+class ToTensor:
+    
     def __call__(self, image):
-        if not isinstance(image.dtype, np.float32):
-            image = image.astype(np.float32)
-            
-        if np.random.randint(2):
-            image += np.random.uniform(-self.delta, self.delta)
-        return np.clip(image, 0, 255)
-
-
-class RandomContrast:
-    """adjust contrast of an image using uniform distribution.
-    """
-    def __init__(self, lower=0.5, upper=1.5):
-        self.lower = lower
-        self.upper = upper
-        assert self.upper >= self.lower, "contrast upper must be >= lower."
-        assert self.lower >= 0, "contrast lower must be non-negative."
-
-    def __call__(self, image):
-        if not isinstance(image.dtype, np.float32):
-            image = image.astype(np.float32)
-            
-        if np.random.randint(2):
-            image *= np.random.uniform(self.lower, self.upper)
-        return np.clip(image, 0, 255)
-
-
-class RandomHue:
-    """adjust hue of an image using uniform distribution.
-    """
-    def __init__(self, delta=72):
-        assert delta >= 0 and delta < 180
-        self.delta = delta
-
-    def __call__(self, image):
-        if not isinstance(image.dtype, np.float32):
-            image = image.astype(np.float32)
-            
-        image[:, :, 0] += np.random.uniform(-self.delta, self.delta)
-        image[:, :, 0] %= 180
-        return image
-
-
-class RandomSaturation:
-    """adjust saturation of an image using uniform distribution.
-    """
-    def __init__(self, lower=0.5, upper=1.5):
-        self.lower = lower
-        self.upper = upper
-        assert self.upper >= self.lower, "contrast upper must be >= lower."
-        assert self.lower >= 0, "contrast lower must be non-negative."
-
-    def __call__(self, image):
-        if not isinstance(image.dtype, np.float32):
-            image = image.astype(np.float32)
-        image[:, :, 1] *= np.random.uniform(self.lower, self.upper)
-        return np.clip(image, 0, 255)
-
-
-class AdjustHSV:
-    """convert between BGR and HSV color and adjust hue and saturation of the given image. 
-    """
-    def __init__(self, h_delta=72, s_value=(0.5, 1.5)):
-        self.random_hue = RandomHue(delta=h_delta)
-        self.random_sat = RandomSaturation(lower=s_value[0], upper=s_value[1])
-        
-    def __call__(self, image):
-        if np.random.randint(2):
-            image = cv2.cvtColor(image, cv2.COLOR_BGR2HSV)
-            image = self.random_sat(self.random_hue(image=image))
-            image = cv2.cvtColor(image, cv2.COLOR_HSV2BGR)
-        return image
+        image = np.ascontiguousarray(image.transpose(2,0,1))
+        return torch.from_numpy(image).float()
