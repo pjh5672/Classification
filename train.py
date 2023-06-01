@@ -143,9 +143,11 @@ def train(opt, device):
         if GLOBAL_RANK in {-1, 0}:
             val_loss, val_top1, val_top5 = validate(loader=val_loader, model=model, 
                                                     criterion=criterion, device=device)
-            keys = ('Epoch', 'metric/Acc@1', 'metric/Acc@5', f'Loss/{loss_type.upper()}')
-            vals = (epoch, val_top1, val_top5, val_loss)
-            save_result(keys=keys, vals=vals, save_dir=project_dir)
+            if not evolve:
+                keys = ('Epoch', 'metric/Acc@1', 'metric/Acc@5', f'Loss/{loss_type.upper()}')
+                vals = (epoch, val_top1, val_top5, val_loss)
+                save_result(keys=keys, vals=vals, save_dir=project_dir)
+                
             save_obj = {
                 'dataset': dataset,
                 'on_epoch': epoch, 
