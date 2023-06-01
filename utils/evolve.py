@@ -48,7 +48,7 @@ class Evolution:
             hyp[k] = max(hyp[k], v[1])  # lower limit
             hyp[k] = min(hyp[k], v[2])  # upper limit
             hyp[k] = round(hyp[k], 5)  # significant digits
-
+    
     def compute_fitness(self, x):
         # Model fitness as a weighted combination of metrics
         w = [1.0, 0.0, 0.0]  # weights for [Top1-Acc, Top5-Acc, ValLoss]
