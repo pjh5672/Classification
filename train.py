@@ -188,7 +188,7 @@ def build_parser(makedirs=True):
     parser.add_argument('--train-size', type=int, default=224, help='train input size')
     parser.add_argument('--val-size', type=int, default=224, help='val input size')
     parser.add_argument('--batch-size', type=int, default=64, help='Batch size')
-    parser.add_argument('--num-epochs', type=int, default=200, help='Number of training epoch')
+    parser.add_argument('--num-epochs', type=int, default=300, help='Number of training epoch')
     parser.add_argument('--base-lr', type=float, default=0.1, help='Base learning rate')
     parser.add_argument('--lr-decay', type=float, default=0.01, help='Epoch to learning rate decay')
     parser.add_argument('--warmup', type=int, default=5, help='Epoch for warming up training')
