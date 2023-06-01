@@ -34,7 +34,7 @@ def train(opt, device):
      lr_decay, num_epochs, no_amp, resume, load_path, warmup, project_dir,
      weight_dir, mobile_v3, width_multiple, depth_multiple, pretrained, evolve) = \
         (opt.dataset, opt.base_lr, opt.batch_size, opt.workers, 
-         opt.seed, opt.arch, opt.class_list, opt.val_size, opt.loss_type, 
+         opt.seed, opt.arch_name, opt.class_list, opt.val_size, opt.loss_type, 
          opt.label_smoothing, opt.momentum, opt.weight_decay, opt.lr_decay, 
          opt.num_epochs, opt.no_amp, opt.resume, opt.load_path, opt.warmup, 
          opt.project_dir, opt.weight_dir, opt.mobile_v3, opt.width_multiple, 
@@ -181,7 +181,7 @@ def build_parser(makedirs=True):
     parser = argparse.ArgumentParser()
     parser.add_argument('--project', type=str, required=True, help='Name to train project')
     parser.add_argument('--dataset', type=str, default='mit67', help='Dataset name')
-    parser.add_argument('--arch', type=str, default='resnet18', help='Model architecture')
+    parser.add_argument('--arch-name', type=str, default='resnet18', help='Model architecture')
     parser.add_argument('--mobile-v3', type=str, default='large', help='Mobilenetv3 architecture mode')
     parser.add_argument('--width-multiple', type=float, default=1.0, help='CSP-Layer channel multiple')
     parser.add_argument('--depth-multiple', type=float, default=1.0, help='CSP-Model depth multiple')
