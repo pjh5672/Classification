@@ -32,13 +32,13 @@ def train(opt, device):
     (dataset, base_lr, batch_size, workers, seed, arch_name, class_list, 
      val_size, loss_type, label_smoothing, momentum, weight_decay, 
      lr_decay, num_epochs, no_amp, resume, load_path, warmup, project_dir,
-     weight_dir, mobile_v3, width_multiple, depth_multiple, pretrained) = \
+     weight_dir, mobile_v3, width_multiple, depth_multiple, pretrained, evolve) = \
         (opt.dataset, opt.base_lr, opt.batch_size, opt.workers, 
          opt.seed, opt.arch, opt.class_list, opt.val_size, opt.loss_type, 
-         opt.label_smoothing, opt.momentum, opt.weight_decay, 
-         opt.lr_decay, opt.num_epochs, opt.no_amp, opt.resume, 
-         opt.load_path, opt.warmup, opt.project_dir, opt.weight_dir,
-         opt.mobile_v3, opt.width_multiple, opt.depth_multiple, opt.pretrained)
+         opt.label_smoothing, opt.momentum, opt.weight_decay, opt.lr_decay, 
+         opt.num_epochs, opt.no_amp, opt.resume, opt.load_path, opt.warmup, 
+         opt.project_dir, opt.weight_dir, opt.mobile_v3, opt.width_multiple, 
+         opt.depth_multiple, opt.pretrained, opt.evolve)
 
     init_seeds(opt.seed + 1 + GLOBAL_RANK, deterministic=True)
     batch_size //= WORLD_SIZE
@@ -69,11 +69,13 @@ def train(opt, device):
     model = build_model(arch_name=arch_name, num_classes=len(class_list), 
                         width_multiple=width_multiple, depth_multiple=depth_multiple, 
                         mode=mobile_v3, pretrained=pretrained)
-    model_info(model=model, input_size=val_size)
     criterion = build_criterion(name=loss_type, label_smoothing=label_smoothing)
     optimizer = build_optimizer(model=model, lr=base_lr, momentum=momentum, weight_decay=weight_decay)
     scheduler = build_scheduler(optimizer=optimizer, lr_decay=lr_decay, num_epochs=num_epochs)
     scaler = amp.GradScaler(enabled=not no_amp)
+
+    if not evolve:
+        model_info(model=model, input_size=val_size)
 
     on_epoch = 1
     nw = max(round(warmup * len(train_loader)), 100)
