@@ -26,11 +26,9 @@ class Parser:
     def __init__(self, data_dir: Path, dataset: str):
         self.dataset = dataset
         self.data_dir = data_dir
-        data_yaml = self.data_dir / f'{self.dataset}.data.yaml'
-        hyp_yaml =  self.data_dir / f'{self.dataset}.hyp.yaml'
         self.args = None
-        self.data = DataParam(**yaml_load(data_yaml))
-        self.hyp = HyperParam(**yaml_load(hyp_yaml))
+        self.data = DataParam(**yaml_load(data_dir / f'{dataset}.data.yaml'))
+        self.hyp = HyperParam(**yaml_load(data_dir / f'{dataset}.hyp.yaml'))
         self.opt = argparse.Namespace()
     
     def build_opt(self):
@@ -49,10 +47,8 @@ class Parser:
                   default_flow_style=None)
     
     def change_dataset(self, to):
-        data_yaml = self.data_dir / f'{to}.data.yaml'
-        hyp_yaml =  self.data_dir / f'{to}.hyp.yaml'
-        self.data = DataParam(**yaml_load(data_yaml))
-        self.hyp = HyperParam(**yaml_load(hyp_yaml))
+        self.data = DataParam(**yaml_load(self.data_dir / f'{to}.data.yaml'))
+        self.hyp = HyperParam(**yaml_load(self.data_dir / f'{to}.hyp.yaml'))
         return self.build_opt()
 
 
