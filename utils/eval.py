@@ -1,4 +1,3 @@
-
 def compute_accuracy(output, target, topk=(1,)):
     """computes the accuracy over the k top predictions for the specified values of k.
 

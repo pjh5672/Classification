@@ -1,85 +1,127 @@
-import math
+import os
+import random
+import inspect
+import logging
+import logging.config
 from pathlib import Path
+from datetime import datetime
 
-import yaml
-from torch import nn
-from torch import optim
+import torch
+import numpy as np
+from tqdm import trange
+import pkg_resources as pkg
 
-
-def yaml_load(file):
-    # Single-line safe yaml loading
-    with open(file, errors='ignore') as f:
-        return yaml.safe_load(f)
-
-
-def yaml_save(file, data={}, default_flow_style=False):
-    # Single-line safe yaml saving
-    with open(file, 'w') as f:
-        yaml.safe_dump({k: str(v) if isinstance(v, Path) else v for k, v in data.items()}, 
-                       f, sort_keys=False, default_flow_style=default_flow_style)
+LOGGING_NAME = 'Classification'
+GLOBAL_RANK = int(os.getenv('RANK', -1))
+NUM_THREADS = min(8, max(1, os.cpu_count() - 1))
+ROOT = Path(__file__).resolve().parents[1]
+TQDM_BAR_FORMAT = '{l_bar}{bar:12}{r_bar}'
 
 
-def is_parallel(model):
-    # Returns True if model is of type DP or DDP
-    return type(model) in (nn.parallel.DataParallel, nn.parallel.DistributedDataParallel)
+def init_seeds(seed=0, deterministic=False):
+    # Initialize random number generator (RNG) seeds https://pytorch.org/docs/stable/notes/randomness.html
+    random.seed(seed)
+    np.random.seed(seed)
+    torch.manual_seed(seed)
+    torch.cuda.manual_seed(seed)
+    torch.cuda.manual_seed_all(seed)  # for Multi-GPU, exception safe
+    if deterministic and check_version(torch.__version__, '1.12.0'): 
+        torch.use_deterministic_algorithms(True)
+        torch.backends.cudnn.deterministic = True
+        os.environ['CUBLAS_WORKSPACE_CONFIG'] = ':4096:8'
+        os.environ['PYTHONHASHSEED'] = str(seed)
 
 
-def de_parallel(model):
-    # De-parallelize a model: returns single-GPU model if model is of type DP or DDP
-    return model.module if is_parallel(model) else model
-
-
-def one_cycle(y1=0.0, y2=1.0, steps=100):
-    # lambda function for sinusoidal ramp from y1 to y2 https://arxiv.org/pdf/1812.01187.pdf
-    return lambda x: ((1 - math.cos(x * math.pi / steps)) / 2) * (y2 - y1) + y1
-
-
-def set_lr(optimizer, lr):
-    for param_group in optimizer.param_groups:
-        param_group['lr'] = lr
-
-
-def build_criterion(name='ce', label_smoothing=0.0):
-    assert name in ['ce'], f"not support criterion(loss function), got {name}."
+def seed_worker(worker_id):
+    # Set dataloader worker seed https://pytorch.org/docs/stable/notes/randomness.html#dataloader
+    worker_seed = torch.initial_seed() % 2 ** 32
+    np.random.seed(worker_seed)
+    random.seed(worker_seed)
     
-    if name == 'ce':
-        obj_func = nn.CrossEntropyLoss(label_smoothing=label_smoothing)
-    return obj_func
+    
+def check_version(current='0.0.0', minimum='0.0.0', name='version '):
+    # Check version vs. required version
+    current, minimum = (pkg.parse_version(x) for x in (current, minimum))
+    result = current >= minimum
+    return result
 
 
-def build_optimizer(model, name='sgd', lr=0.001, momentum=0.9, weight_decay=1e-5):
-    assert name in ['adam', 'sgd'], f"not support optimizer, got {name}."
-    
-    # No bias decay heuristic recommendation
-    g = [], [], []  # optimizer parameter groups
-    bn = tuple(v for k, v in nn.__dict__.items() if 'Norm' in k)
-    for v in model.modules():
-        for p_name, p in v.named_parameters(recurse=0):
-            if p_name == 'bias': # bias (no decay)
-                g[2].append(p)
-            elif p_name == 'weight' and isinstance(v, bn):  # Norm's weight (no decay)
-                g[1].append(p)
-            else:
-                g[0].append(p)  # Conv's weight (with decay)
+def set_logging(name=LOGGING_NAME, verbose=True):
+    level = logging.INFO if verbose and GLOBAL_RANK in {-1, 0} else logging.ERROR
+    logging.config.dictConfig(
+        {
+        'version': 1,
+        'disable_existing_loggers': False,
+        'formatters': {
+            name: {
+                'format': '%(message)s'
+                }
+            },
+        'handlers': {
+            name: {
+                'class': 'logging.StreamHandler',
+                'formatter': name,
+                'level': level,
+                }
+            },
+        'loggers': {
+            name: {
+                'level': level,
+                'handlers': [name],
+                'propagate': False,
+                }
+            }
+        }
+    )
 
-    if name == 'adam':
-        optimizer = optim.Adam(g[2], lr=lr, betas=(momentum, 0.999))  # adjust beta1 to momentum
-    else:
-        optimizer = optim.SGD(g[2], lr=lr, momentum=momentum, nesterov=True)
-    
-    optimizer.add_param_group({'params': g[0], 'weight_decay': weight_decay})  # add g0 with weight_decay
-    optimizer.add_param_group({'params': g[1], 'weight_decay': 0.0})  # add g1 (BatchNorm2d weights)
-    return optimizer
-    
 
-def build_scheduler(optimizer, name='imagenet', num_epoch=100, lr_decay=1e-4):
-    assert name in ['mit67', 'cub200', 'dogs', 'imagenet'], f"not support scheduler, got {name}."
-    
-    if name in ['mit67', 'cub200', 'dogs']:
-        scheduler = optim.lr_scheduler.MultiStepLR(optimizer, milestones=[100, 150], gamma=0.1)
-    elif name in ['imagenet']:
-        scheduler = optim.lr_scheduler.StepLR(optimizer, step_size=30, gamma=0.1)
-    else:
-        scheduler = optim.lr_scheduler.LambdaLR(optimizer=optimizer, 
-                                                lr_lambda=one_cycle(1, lr_decay, num_epoch))
-    return scheduler
+set_logging(LOGGING_NAME)  # run before defining LOGGER
+LOGGER = logging.getLogger(LOGGING_NAME)  # define globally (used in train.py, val.py)
+
+
+def file_date(path=__file__):
+    # Return human-readable file modification date, i.e. '2021-3-26'
+    t = datetime.fromtimestamp(Path(path).stat().st_mtime)
+    return f'{t.year}-{t.month}-{t.day}'
+
+
+def print_args(args = None, show_file=True, exclude_keys=()):
+    # Print function arguments (optional args dict)
+    x = inspect.currentframe().f_back  # previous frame
+    file, *_ = inspect.getframeinfo(x)
+    if args is None:  # get args automatically
+        args, _, _, frm = inspect.getargvalues(x)
+        args = {k: v for k, v in frm.items() if k in args}
+    try:
+        file = Path(file).resolve().relative_to(ROOT).with_suffix('')
+    except ValueError:
+        file = Path(file).stem
+    s = (f'{file}: ' if show_file else '') 
+    LOGGER.info(colorstr(s) + \
+                ', '.join(f'{k}={v}' for k, v in args.items() if k not in exclude_keys))
+
+
+def colorstr(*input):
+    # Colors a string https://en.wikipedia.org/wiki/ANSI_escape_code, i.e.  colorstr('blue', 'hello world')
+    *args, string = input if len(input) > 1 else ('bright_red', 'bold', input[0])  # color arguments, string
+    colors = {
+        'black': '\033[30m',
+        'red': '\033[31m',
+        'green': '\033[32m',
+        'yellow': '\033[33m',
+        'blue': '\033[34m',
+        'magenta': '\033[35m',
+        'cyan': '\033[36m',
+        'white': '\033[37m',
+        'bright_black': '\033[90m',
+        'bright_red': '\033[91m',
+        'bright_green': '\033[92m',
+        'bright_yellow': '\033[93m',
+        'bright_blue': '\033[94m',
+        'bright_magenta': '\033[95m',
+        'bright_cyan': '\033[96m',
+        'bright_white': '\033[97m',
+        'end': '\033[0m',
+        'bold': '\033[1m',
+        'underline': '\033[4m'}
+    return ''.join(colors[x] for x in args) + f'{string}' + colors['end']

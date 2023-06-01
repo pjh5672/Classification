@@ -4,20 +4,22 @@ from collections import OrderedDict
 
 import torch
 
+from utils.parse import Parser
+
 ROOT = Path(__file__).resolve().parents[0]
 
 
 def parse_args():
     parser = argparse.ArgumentParser()
-    parser.add_argument('--exp', type=str, required=True, help='Name to log training')
-    parser.add_argument('--ckpt-name', type=str, default='best.pt', help='Path to trained model')
-
-    args = parser.parse_args()
-    args.exp_path = ROOT / 'experiment' / args.exp
-    args.ckpt_path = args.exp_path / 'weight' / args.ckpt_name
-    return args
+    parser.add_argument('--project', type=str, required=True, help='Name to log training')
     
+    args = parser.parse_args()
+    args.project_dir = ROOT / 'experiment' / args.project
+    args.weight_dir = args.project_dir / 'weight'
+    args.ckpt_path = args.weight_dir / 'best.pt'
+    return args
 
+    
 if __name__ == '__main__':
     args = parse_args()
 
@@ -29,4 +31,4 @@ if __name__ == '__main__':
         if not key.startswith('fc'):
             parsed_model_state[key] = val
     
-    torch.save({'model_state': parsed_model_state}, f'./{args.exp}.pth')
+    torch.save({'model_state': parsed_model_state}, f'./{args.project}.pt')

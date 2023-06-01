@@ -57,5 +57,6 @@ if __name__ == "__main__":
     y = model(x)
     print(y.shape)
 
+    mb, gb = 1 << 20, 1 << 30
     macs, params = profile(model, inputs=(torch.randn(1, 3, input_size, input_size),), verbose=False)
-    print(f"Params(M): {params/1e+6:.2f}, FLOPS(B): {2*macs/1E+9:.2f}")
+    print(f"Params(M): {params/mb:.2f}, FLOPS(B): {2*macs/gb:.2f}")

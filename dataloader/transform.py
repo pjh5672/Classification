@@ -8,17 +8,17 @@ import numpy as np
 class TrainTransform:
     """augmentation class for model training
     """
-    def __init__(self, input_size, mean, std,
+    def __init__(self, train_size, mean, std,
                  scale=(0.08, 1.0), ratio=(3/4, 4/3),
-                 h_gain=0.4, s_gain=0.4, v_gain=0.4):
+                 hsv_h=0.4, hsv_s=0.4, hsv_v=0.4):
         mean = np.array(mean, dtype=np.float32)
         std = np.array(std, dtype=np.float32)
         self.tfs = Compose([
             ##### Geometric Augment #####
             HorizontalFlip(),
-            RandomResizedCrop(size=input_size, scale=scale, ratio=ratio),
+            RandomResizedCrop(size=train_size, scale=scale, ratio=ratio),
             #### Photometric Augment ####
-            AugmentHSV(h_gain=h_gain, s_gain=s_gain, v_gain=v_gain),
+            AugmentHSV(h_gain=hsv_h, s_gain=hsv_s, v_gain=hsv_v),
             ##### End-of-Augment #####
             Normalize(mean=mean, std=std),
             ToTensor()
@@ -31,12 +31,12 @@ class TrainTransform:
 class ValidTransform:
     """augmentation class for model evaluation
     """
-    def __init__(self, input_size, mean, std):
+    def __init__(self, val_size, mean, std):
         mean = np.array(mean, dtype=np.float32)
         std = np.array(std, dtype=np.float32)
         self.tfs = Compose([
             Resize(size=256),
-            CenterCrop(size=input_size),
+            CenterCrop(size=val_size),
             Normalize(mean=mean, std=std),
             ToTensor()
         ])
@@ -63,16 +63,16 @@ class AugmentHSV:
         self.h_gain = h_gain
         self.s_gain = s_gain
         self.v_gain = v_gain
+        self.x = np.arange(0, 256, dtype=np.float64)
     
     def __call__(self, image):
         r = np.random.uniform(-1, 1, 3) * [self.h_gain, self.s_gain, self.v_gain] + 1
-        hue, sat, val = cv2.split(cv2.cvtColor(image, cv2.COLOR_BGR2HSV))
-        x = np.arange(0, 256, dtype=r.dtype)
-        lut_hue = ((x * r[0]) % 180).astype(np.uint8)
-        lut_sat = np.clip(x * r[1], 0, 255).astype(np.uint8)
-        lut_val = np.clip(x * r[2], 0, 255).astype(np.uint8)
+        hue, sat, val = cv2.split(cv2.cvtColor(image, cv2.COLOR_RGB2HSV))
+        lut_hue = ((self.x * r[0]) % 180).astype(np.uint8)
+        lut_sat = np.clip(self.x * r[1], 0, 255).astype(np.uint8)
+        lut_val = np.clip(self.x * r[2], 0, 255).astype(np.uint8)
         im_hsv = cv2.merge((cv2.LUT(hue, lut_hue), cv2.LUT(sat, lut_sat), cv2.LUT(val, lut_val)))
-        image = cv2.cvtColor(im_hsv, cv2.COLOR_HSV2BGR)
+        image = cv2.cvtColor(im_hsv, cv2.COLOR_HSV2RGB)
         return image
 
 
@@ -91,7 +91,7 @@ class Resize:
             h1, w1 = int(scale_h * self.size), int(scale_w * self.size)
         else:
             h1, w1 = self.size
-        return cv2.resize(image, (w1, h1))
+        return cv2.resize(image, dsize=(w1, h1), interpolation=cv2.INTER_LINEAR)
 
 
 class HorizontalFlip:

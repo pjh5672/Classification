@@ -1,118 +1,102 @@
-import platform
+import os
 import argparse
 from pathlib import Path
-from datetime import datetime
 
 import torch
 from tqdm import tqdm
 from torch.utils.data import DataLoader
 
-ROOT = Path(__file__).resolve().parents[0]
-TIMESTAMP = datetime.today().strftime("%Y-%m-%d_%H-%M")
-OS_SYSTEM = platform.system()
-SEED = 2023
-torch.manual_seed(SEED)
-
 from dataloader import build_dataset
 from model import build_model
-from utils import (build_logger, build_criterion, compute_accuracy, 
-                   AverageMeter, ProgressMeter, yaml_load)
+from utils.general import colorstr, TQDM_BAR_FORMAT, LOGGER
+from utils.parse import Parser
+from utils.meter import AverageMeter
+from utils.eval import compute_accuracy
+from utils.torch_utils import select_device, build_criterion
+                               
+ROOT = Path(__file__).resolve().parents[0]
 
 
-def parse_opt():
-    """parse argument parameters for evaluation
+@torch.no_grad()
+def validate(loader, model, criterion, device):
+    s = ('%27s' + '%14s' * 3) % (colorstr('bright_green', 'bold', 'Validation'),
+                                         'Loss', 'Acc@1', 'Acc@5')
+    pbar = tqdm(enumerate(loader), desc=s, total=len(loader), bar_format=TQDM_BAR_FORMAT)
 
-    Returns:
-        argparse: parameters related to evaluation
-    """
-    parser = argparse.ArgumentParser()
-    parser.add_argument('--exp', type=str, required=True, help='Name to log training')
-    parser.add_argument('--dataset', type=str, default='mit67', help='Dataset name')
-    parser.add_argument('--img-size', type=int, default=224, help='Model input size')
-    parser.add_argument('--batch-size', type=int, default=16, help='Batch size')
-    parser.add_argument('--num-epoch', type=int, default=0, help='Number of dummy epoch')
-    parser.add_argument('--ckpt-name', type=str, default='best.pt', help='Path to trained model')
-    parser.add_argument('--rank', type=int, default=0, help='Process id for computation')
-    parser.add_argument('--workers', type=int, default=8, help='Number of workers for dataloader')
-
-    args = parser.parse_args()
-    args.data = ROOT / 'data' / f'{args.dataset}.data.yaml'
-    args.hyp = ROOT / 'data' / f'{args.dataset}.hyp.yaml'
-    args.exp_path = ROOT / 'experiment' / args.exp
-    args.ckpt_path = args.exp_path / 'weight' / args.ckpt_name
-
-    opt = argparse.Namespace()
-    opt.data = argparse.Namespace(**yaml_load(args.data))
-    opt.hyp = argparse.Namespace(**yaml_load(args.hyp))
-    opt.args = args
-    opt.input_size = args.img_size
-    return opt
-
-
-def main_work(**kwargs):
-    """load dataloader and trained classifier model and evaluate it.
-    """
-    args = opt.args
-    batch_size = args.batch_size
-    num_workers = args.workers
+    model.eval()
+    val_loss = AverageMeter('Loss', ':5.4f')
+    val_top1 = AverageMeter('Acc@1', ':5.2f')
+    val_top5 = AverageMeter('Acc@5', ':5.2f')
     
+    for _, batch in pbar:
+        images = batch[0].to(device, non_blocking=True)
+        labels = batch[1].to(device, non_blocking=True)
+
+        predictions = model(images)
+        loss = criterion(predictions, labels)  
+        acc1, acc5 = compute_accuracy(predictions, labels, topk=(1, 5))
+        
+        val_loss.update(loss.item(), images.size(0))
+        val_top1.update(acc1[0].item(), images.size(0))
+        val_top5.update(acc5[0].item(), images.size(0))
+
+    LOGGER.info(('%27s' + '%14.4g' * 3) % (colorstr('bright_green', 'bold', 'Result'), 
+                                            val_loss.avg, val_top1.avg, val_top5.avg))
+    return val_loss.avg, val_top1.avg, val_top5.avg
+
+
+def save_result(keys, vals, save_dir):
+    # Log to results.csv
+    result_csv = save_dir / 'result.csv'
+    keys = tuple(x.strip() for x in keys)
+    n = len(keys)
+    s = '' if result_csv.exists() else (('%16s,' * n % keys).rstrip(',') + '\n')
+    with open(result_csv, 'a') as f:
+        f.write(s + ('%16.5g,' * n % vals).rstrip(',') + '\n')
+        
+
+def build_parser():
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--project', type=str, required=True, help='Name to train project')
+    parser.add_argument('--dataset', type=str, default='mit67', help='Dataset name')
+    parser.add_argument('--val-size', type=int, default=224, help='val input size')
+    parser.add_argument('--batch-size', type=int, default=16, help='Batch size')
+    parser.add_argument('--workers', type=int, default=0, help='Number of workers for dataloader')
+    parser.add_argument('--device', default='0', help='cuda device, i.e. 0 or 0,1,2,3 or cpu')
+    parser.add_argument('--seed', type=int, default=0, help='Global training seed')
+    
+    args = parser.parse_args()
+    args.project_dir = ROOT / 'experiment' / args.project
+    args.weight_dir = args.project_dir / 'weight'
+    args.ckpt_path = args.weight_dir / 'best.pt'
+        
+    parser = Parser(data_dir=ROOT / 'data', dataset=args.dataset)
+    parser.args = args
+    opt = parser.build_opt()
+    
+    for k, v in vars(args).items():
+        setattr(opt, k, v)
+    return opt, parser
+
+
+def main(opt, parser):
+    device = select_device(device=opt.device, batch_size=opt.batch_size)
+    ckpt = torch.load(opt.ckpt_path)
+    opt = parser.change_dataset(to=ckpt['dataset'])
+    opt.train_size = opt.val_size
     _, val_dataset = build_dataset(opt=opt)
-    val_loader = DataLoader(dataset=val_dataset, batch_size=batch_size, 
-                            shuffle=False, pin_memory=True, num_workers=num_workers)
-    val_loader = tqdm(val_loader, desc='[VAL]', ncols=110, leave=False)
-    ckpt = torch.load(args.ckpt_path, map_location = {'cpu':'cuda:%d' %args.rank})
-    model = build_model(arch_name=ckpt['model'], num_classes=len(ckpt['idx2cls']))
+    val_loader = DataLoader(dataset=val_dataset, batch_size=opt.batch_size, 
+                            shuffle=False, pin_memory=True, num_workers=opt.workers)
+    model = build_model(arch_name=ckpt['arch_name'], num_classes=len(ckpt['class_list']), 
+                        width_multiple=ckpt['width_multiple'], depth_multiple=ckpt['depth_multiple'], 
+                        mode=ckpt['mobile_v3'])
     criterion = build_criterion(name=ckpt['loss_type'], 
                                 label_smoothing=ckpt['label_smoothing'])
     model.load_state_dict(ckpt['model_state'], strict=True)
-    model.cuda(args.rank)
+    model = model.to(device)
+    _ = validate(loader=val_loader, model=model, criterion=criterion, device=device)
     
-    _, val_progress_msg = validate(args=args, dataloader=val_loader, 
-                                   model=model, criterion=criterion)
-    logger.info(f'[Validation Result]\n{val_progress_msg}')
     
-
-@torch.no_grad()
-def validate(args, dataloader, model, criterion, epoch=0):
-    """evaluate trained classifier model.
-
-    Args:
-        args (argparse): parameters related to training
-        dataloader (torch.utils.data.DataLoader): dataloader for forwarding
-        model (torch.nn.Module): trained classifier architecture
-        epoch (int, optional): used only in calling train phase. Defaults to 0.
-
-    Returns:
-        float: top-1, top-5 accuracy after evaluation
-        str: accuracy message for the given epoch
-    """
-    losses = AverageMeter('Loss', ':5.4f')
-    top1 = AverageMeter('Acc@1', ':5.2f')
-    top5 = AverageMeter('Acc@5', ':5.2f')
-    progress = ProgressMeter(num_epochs=args.num_epoch, 
-                             meters=[losses, top1, top5], prefix='  Val:')
-    model.eval()
-
-    for _, batch in enumerate(dataloader):
-        images = batch[0].cuda(args.rank, non_blocking=True)
-        labels = batch[1].cuda(args.rank, non_blocking=True)
-
-        predictions = model(images)
-        loss = criterion(predictions, labels)
-        acc1, acc5 = compute_accuracy(predictions, labels, topk=(1, 5))
-        
-        losses.update(loss.item(), images.size(0))
-        top1.update(acc1[0], images.size(0))
-        top5.update(acc5[0], images.size(0))
-        
-    del images, labels, predictions
-    torch.cuda.empty_cache()
-    progress_msg = progress.get_summary(epoch)
-    return top1.avg, progress_msg
-
-
 if __name__ == "__main__":
-    opt = parse_opt()
-    args = opt.args
-    logger = build_logger(log_file_path=args.exp_path / 'val.log', set_level=1)
-    main_work(opt=opt, logger=logger)
+    opt, parser = build_parser()
+    main(opt=opt, parser=parser)

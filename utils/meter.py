@@ -57,25 +57,3 @@ class AverageMeter:
         else:
             raise ValueError('invalid summary type %r' % self.summary_type)
         return fmtstr.format(**self.__dict__)
-
-
-class ProgressMeter:
-    def __init__(self, num_epochs, meters, prefix=''):
-        self.batch_fmtstr = self._get_batch_fmtstr(num_epochs)
-        self.meters = meters
-        self.prefix = prefix
-
-    def get_meter(self, epoch):
-        entries = [self.prefix + self.batch_fmtstr.format(epoch)]
-        entries += [str(meter) for meter in self.meters]
-        return '\t'.join(entries)
-        
-    def get_summary(self, epoch=None):
-        entries = [self.prefix + self.batch_fmtstr.format(epoch) if epoch is not None else " *"]
-        entries += [meter.summary() for meter in self.meters]
-        return '\t'.join(entries)
-
-    def _get_batch_fmtstr(self, num_epochs):
-        num_digits = len(str(num_epochs // 1))
-        fmt = '{:' + str(num_digits) + 'd}'
-        return '[' + fmt + '/' + fmt.format(num_epochs) + ']'
