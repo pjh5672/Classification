@@ -256,6 +256,7 @@ def main(opt, parser):
         LOGGER.info(f'Hyperparameter evolution finished {opt.evolve} generations\n'
                     f"Results saved to {colorstr('green', 'bold', opt.evolve_dir)}")
         
+        
 if __name__ == "__main__":
     opt, parser = build_parser(makedirs=True)
     main(opt=opt, parser=parser)
