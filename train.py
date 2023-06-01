@@ -147,7 +147,7 @@ def train(opt, device):
                 keys = ('Epoch', 'metric/Acc@1', 'metric/Acc@5', f'Loss/{loss_type.upper()}')
                 vals = (epoch, val_top1, val_top5, val_loss)
                 save_result(keys=keys, vals=vals, save_dir=project_dir)
-                
+
             save_obj = {
                 'dataset': dataset,
                 'on_epoch': epoch, 
@@ -241,8 +241,8 @@ def main(opt, parser):
         device = torch.device('cuda', LOCAL_RANK)
         dist.init_process_group(backend='nccl' if dist.is_nccl_available() else 'gloo')
 
+    parser.save_yaml(save_dir=opt.project_dir)
     if not opt.evolve:
-        parser.save_yaml(save_dir=opt.project_dir)
         _ = train(opt, device)
     else:
         for _ in range(opt.evolve):  # generations to evolve
@@ -254,7 +254,7 @@ def main(opt, parser):
             evolve.write_results(hyp=hyp, keys=keys, results=results)
 
         LOGGER.info(f'Hyperparameter evolution finished {opt.evolve} generations\n'
-                    f"Results saved to {colorstr('bright_yellow', 'bold', opt.evolve_dir)}")
+                    f"Results saved to {colorstr('green', 'bold', opt.evolve_dir)}")
         
 if __name__ == "__main__":
     opt, parser = build_parser(makedirs=True)
