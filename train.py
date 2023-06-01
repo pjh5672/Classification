@@ -247,7 +247,7 @@ def main(opt, parser):
             evolve = Evolution(save_dir=opt.evolve_dir)
             hyp = {k: vars(opt)[k] for k in list(evolve.params.keys())}
             evolve.run(hyp=hyp)
-            results = train(opt, device)
+            results = train(argparse.Namespace(**dict(vars(opt), **hyp)), device)
             keys = ('metric/Acc@1', 'metric/Acc@5', f'Loss/{opt.loss_type.upper()}')
             evolve.write_results(hyp=hyp, keys=keys, results=results)
 
