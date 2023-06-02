@@ -30,7 +30,7 @@ class Evolution:
         if self.evolve_csv.exists():
             np.random.seed(int(time.time()))
             x = np.loadtxt(self.evolve_csv, ndmin=2, delimiter=',', skiprows=1)
-            n = min(5, len(x))
+            n = min(3, len(x)) # top 3 mutations
             x = x[np.argsort(-self.compute_fitness(x))][:n]
             w = self.compute_fitness(x) - self.compute_fitness(x).min() + 1E-6
             x = x[random.choices(range(n), weights=w)[0]]
@@ -48,7 +48,7 @@ class Evolution:
         for k, v in self.params.items():
             hyp[k] = max(hyp[k], v[1])  # lower limit
             hyp[k] = min(hyp[k], v[2])  # upper limit
-            hyp[k] = round(hyp[k], 5)  # significant digits
+            hyp[k] = round(hyp[k], 4)  # significant digits
     
     def compute_fitness(self, x):
         # Model fitness as a weighted combination of metrics
