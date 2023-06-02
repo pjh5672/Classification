@@ -1,3 +1,4 @@
+import time
 import random
 
 import yaml
@@ -27,6 +28,7 @@ class Evolution:
         
     def run(self, hyp):
         if self.evolve_csv.exists():
+            np.random.seed(int(time.time()))
             x = np.loadtxt(self.evolve_csv, ndmin=2, delimiter=',', skiprows=1)
             n = min(5, len(x))
             x = x[np.argsort(-self.compute_fitness(x))][:n]
@@ -39,7 +41,6 @@ class Evolution:
             while all(v == 1):  # mutate until a change occurs (prevent duplicates)
                 v = (g * (np.random.random(ng) < self.mp) * \
                     np.random.randn(ng) * np.random.random() * self.s + 1).clip(0.3, 3.0)
-            
             for i, k in enumerate(hyp.keys()):  # plt.hist(v.ravel(), 300)
                 hyp[k] = float(x[i] * v[i])  # mutate
 

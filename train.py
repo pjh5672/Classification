@@ -245,11 +245,12 @@ def main(opt, parser):
     if not opt.evolve:
         _ = train(opt, device)
     else:
+        evolve = Evolution(save_dir=opt.evolve_dir)
         for _ in range(opt.evolve):  # generations to evolve
-            evolve = Evolution(save_dir=opt.evolve_dir)
             hyp = {k: vars(opt)[k] for k in list(evolve.params.keys())}
             evolve.run(hyp=hyp)
-            results = train(argparse.Namespace(**dict(vars(opt), **hyp)), device)
+            opt = argparse.Namespace(**dict(vars(opt), **hyp))
+            results = train(opt, device)
             keys = ('metric/Acc@1', 'metric/Acc@5', f'Loss/{opt.loss_type.upper()}')
             evolve.write_results(hyp=hyp, keys=keys, results=results)
 
